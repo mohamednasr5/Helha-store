@@ -446,7 +446,8 @@
 
                   <div class="form-field">
                     <label for="tg-chat-id">Chat ID (معرف المحادثة أو القناة):</label>
-                    <input type="text" id="tg-chat-id" placeholder="مثال: 987654321" dir="ltr">
+                    <input type="text" id="tg-chat-id" placeholder="مثال: 7523249075, 1719802831" dir="ltr">
+                    <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:4px;">يمكنك وضع أكثر من معرف مفصولاً بفاصلة (مثال: 7523249075, 1719802831) لإرسال الإشعار لعدة أشخاص معاً.</small>
                   </div>
 
                   <div style="margin-top:1.25rem; display:flex; gap:0.75rem;">
@@ -468,7 +469,12 @@
                   <div style="display:flex; flex-direction:column; gap:0.85rem; margin-top:1rem;">
                     <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer;">
                       <input type="checkbox" id="tg-notify-orders" checked style="width:18px; height:18px;">
-                      <span><strong>إشعار طلب جديد:</strong> تفاصيل العميل والمنتجات ورابط واتساب.</span>
+                      <span><strong>إشعار طلب جديد:</strong> تفاصيل العميل والمنتجات والعنوان فورياً.</span>
+                    </label>
+
+                    <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer;">
+                      <input type="checkbox" id="tg-notify-messages" checked style="width:18px; height:18px;">
+                      <span><strong>إشعار رسائل واستفسارات الدعم:</strong> رسائل اتصل بنا وتذاكر الدعم الفني.</span>
                     </label>
 
                     <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer;">

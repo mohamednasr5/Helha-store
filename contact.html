@@ -241,6 +241,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
   <script src="js/firebase-config.js"></script>
+  <script src="js/telegram.js"></script>
 
   <!-- Contact Form Dispatcher Script -->
   <script>
@@ -286,7 +287,22 @@
         console.warn("Firebase message store notice:", err);
       }
 
-      // 2. Dispatch via FormSubmit AJAX to Hellha.eg@gmail.com
+      // 2. Dispatch instant Telegram notification to admins
+      try {
+        if (typeof TelegramService !== "undefined") {
+          await TelegramService.notifyContactMessage({
+            name,
+            phone,
+            address,
+            subject,
+            message
+          });
+        }
+      } catch (err) {
+        console.warn("Telegram contact notify notice:", err);
+      }
+
+      // 3. Dispatch via FormSubmit AJAX to Hellha.eg@gmail.com
       try {
         const formData = new FormData(form);
         const resp = await fetch("https://formsubmit.co/ajax/Hellha.eg@gmail.com", {

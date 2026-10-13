@@ -5,11 +5,12 @@
 const TelegramService = {
   // Default in-memory settings (can be overridden by Firebase / localStorage)
   settings: {
-    botToken: "",
-    chatId: "7523249075,1719802831",
+    botToken: "8825653491:AAENIM2Y82iOrxDyGWG6Nb-2bH-kDm4H5Aw",
+    chatId: "7523249075, 1719802831",
     notifyOrders: true,
     notifyVisits: false,
     notifyLogins: true,
+    notifyMessages: true,
   },
 
   /**
@@ -24,10 +25,14 @@ const TelegramService = {
           this.settings = { ...this.settings, ...val };
         }
       } else {
-        const local = localStorage.getItem("helha_telegram_settings");
-        if (local) {
-          this.settings = { ...this.settings, ...JSON.parse(local) };
-        }
+        try {
+          if (typeof localStorage !== "undefined" && typeof localStorage.getItem === "function") {
+            const local = localStorage.getItem("helha_telegram_settings");
+            if (local) {
+              this.settings = { ...this.settings, ...JSON.parse(local) };
+            }
+          }
+        } catch (_) {}
       }
     } catch (err) {
       console.warn("Could not load Telegram settings:", err);
@@ -39,19 +44,23 @@ const TelegramService = {
    */
   async saveSettings(newSettings) {
     this.settings = { ...this.settings, ...newSettings };
-    localStorage.setItem("helha_telegram_settings", JSON.stringify(this.settings));
+    try {
+      if (typeof localStorage !== "undefined" && typeof localStorage.setItem === "function") {
+        localStorage.setItem("helha_telegram_settings", JSON.stringify(this.settings));
+      }
+    } catch (_) {}
     if (typeof db !== "undefined" && db) {
       await db.ref("settings/telegram").set(this.settings);
     }
   },
 
   /**
-   * Low-level send method
+   * Low-level send method with multi-chat support
    */
   async sendMessage(text, customToken = null, customChatId = null) {
     const token = (customToken || this.settings.botToken || "").trim();
     const rawChatIds = (customChatId || this.settings.chatId || "").trim();
-    const chatIds = [...new Set([...rawChatIds.split(/[,\s]+/), "7523249075", "1719802831"].map(id => id.trim()).filter(Boolean))];
+    const chatIds = [...new Set(rawChatIds.split(/[,\s\n]+/).map(id => id.trim()).filter(Boolean))];
 
     if (!token || chatIds.length === 0) {
       console.log("ℹ️ Telegram notifications not configured (missing token or chatId).");
@@ -84,11 +93,15 @@ const TelegramService = {
     }));
 
     const successCount = results.filter(result => result.success).length;
+    const failures = results.filter(result => !result.success);
+    const failureMsg = failures.map(f => `${f.chatId}: ${f.error}`).join(" | ");
+
     return {
-      success: successCount === results.length,
-      partialSuccess: successCount > 0 && successCount < results.length,
+      success: successCount > 0,
+      allSuccess: successCount === results.length,
       sent: successCount,
       total: results.length,
+      error: failures.length > 0 ? failureMsg : null,
       results
     };
   },
@@ -171,8 +184,44 @@ ${waLink ? `💬 <a href="${waLink}">اضغط هنا لمراسلة العميل
     `.trim();
 
     return await this.sendMessage(message);
+  },
+
+  /**
+   * Send notification for a customer contact inquiry or support ticket
+   */
+  async notifyContactMessage(msg) {
+    if (this.settings.notifyMessages === false) return;
+
+    const isTicket = msg.subject === "تذكرة دعم فني" || Boolean(msg.orderId);
+    const icon = isTicket ? "🛠️" : "✉️";
+    const title = isTicket ? "تذكرة دعم فني جديدة" : "رسالة استفسار جديدة";
+
+    const message = `
+${icon} <b>${title} - متجر حِلها</b>
+━━━━━━━━━━━━━━━━━━
+👤 <b>العميل:</b> ${msg.name || "مجهول"}
+📞 <b>رقم الهاتف:</b> <code>${msg.phone || "—"}</code>
+📍 <b>المحافظة / العنوان:</b> ${msg.address || "—"}
+${msg.orderId ? `🆔 <b>رقم الطلب المرتبط:</b> <code>#${msg.orderId}</code>\n` : ""}📌 <b>الموضوع:</b> ${msg.subject || "استفسار عام"}
+
+💬 <b>نص الرسالة:</b>
+${msg.message || msg.details || "—"}
+
+📅 <b>التوقيت:</b> ${new Date().toLocaleString("ar-EG")}
+━━━━━━━━━━━━━━━━━━
+<i>تصل أيضاً إلى: Hellha.eg@gmail.com</i>
+    `.trim();
+
+    return await this.sendMessage(message);
   }
 };
 
 // Initialize immediately
 TelegramService.init();
+
+if (typeof window !== "undefined") {
+  window.TelegramService = TelegramService;
+}
+if (typeof globalThis !== "undefined") {
+  globalThis.TelegramService = TelegramService;
+}

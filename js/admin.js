@@ -926,10 +926,17 @@ async function loadAdminSettings() {
       AdminState.settings = settings;
 
       if (settings.telegram) {
-        document.getElementById("tg-bot-token").value = settings.telegram.botToken || "";
-        document.getElementById("tg-chat-id").value = settings.telegram.chatId || "";
-        document.getElementById("tg-notify-orders").checked = settings.telegram.notifyOrders !== false;
-        document.getElementById("tg-notify-logins").checked = settings.telegram.notifyLogins !== false;
+        const tokenInput = document.getElementById("tg-bot-token");
+        const chatInput = document.getElementById("tg-chat-id");
+        const ordCheck = document.getElementById("tg-notify-orders");
+        const logCheck = document.getElementById("tg-notify-logins");
+        const msgCheck = document.getElementById("tg-notify-messages");
+
+        if (tokenInput) tokenInput.value = settings.telegram.botToken || "";
+        if (chatInput) chatInput.value = settings.telegram.chatId || "";
+        if (ordCheck) ordCheck.checked = settings.telegram.notifyOrders !== false;
+        if (logCheck) logCheck.checked = settings.telegram.notifyLogins !== false;
+        if (msgCheck) msgCheck.checked = settings.telegram.notifyMessages !== false;
       }
     }
   } catch (err) {
@@ -959,11 +966,14 @@ function setupSettingsHandlers() {
       testTgBtn.disabled = false;
       testTgBtn.textContent = "إرسال إشعار تجريبي 🔔";
 
-      if (res.success) {
-        resultEl.textContent = "✅ تم إرسال الإشعار التجريبي لتليجرام بنجاح!";
+      if (res.allSuccess) {
+        resultEl.textContent = `✅ تم إرسال الإشعار التجريبي لتليجرام بنجاح! (${res.sent} محادثة)`;
         resultEl.style.color = "#16a34a";
+      } else if (res.success) {
+        resultEl.textContent = `⚠️ تم الإرسال إلى ${res.sent} من ${res.total} محادثة. (${res.error})`;
+        resultEl.style.color = "#d97706";
       } else {
-        resultEl.textContent = `❌ فشل الإرسال: ${res.error}`;
+        resultEl.textContent = `❌ فشل الإرسال: ${res.error || "تأكد من بدء المحادثة مع البوت بالضغط على Start أولاً"}`;
         resultEl.style.color = "#dc2626";
       }
     });
@@ -977,12 +987,14 @@ function setupSettingsHandlers() {
       const chatId = document.getElementById("tg-chat-id").value.trim();
       const notifyOrders = document.getElementById("tg-notify-orders").checked;
       const notifyLogins = document.getElementById("tg-notify-logins").checked;
+      const notifyMessages = document.getElementById("tg-notify-messages") ? document.getElementById("tg-notify-messages").checked : true;
 
       await TelegramService.saveSettings({
         botToken,
         chatId,
         notifyOrders,
-        notifyLogins
+        notifyLogins,
+        notifyMessages
       });
 
       showAdminToast("تم حفظ إعدادات تليجرام في Firebase بنجاح ✅");
