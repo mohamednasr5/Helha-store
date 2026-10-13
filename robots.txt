@@ -1,5 +1,7 @@
-﻿# Robots.txt for Helha Store (https://helha-eg.com)
-# Generated for 100% SEO & AI Search Optimization
+# Robots.txt for Helha Store (https://helha-eg.com)
+# 100% Google Search, Favicon & AI Search Optimization
+
+Sitemap: https://helha-eg.com/sitemap.xml
 
 User-agent: *
 Allow: /
@@ -7,12 +9,26 @@ Disallow: /admin.html
 Disallow: /*?*order=
 Disallow: /*?*cat=all
 
-# Allow Major AI Search & LLM Engines
+# Google Search & Googlebot-Favicons explicit access
 User-agent: Googlebot
 Allow: /
 Disallow: /admin.html
 
+User-agent: Googlebot-Image
+Allow: /
+Allow: /assets/
+
+User-agent: Googlebot-Favicons
+Allow: /
+Allow: /favicon.ico
+Allow: /assets/
+
+# Major AI & Search Crawlers
 User-agent: Bingbot
+Allow: /
+Disallow: /admin.html
+
+User-agent: Applebot
 Allow: /
 Disallow: /admin.html
 
@@ -35,10 +51,3 @@ Disallow: /admin.html
 User-agent: ClaudeBot
 Allow: /
 Disallow: /admin.html
-
-User-agent: Applebot
-Allow: /
-Disallow: /admin.html
-
-# XML Sitemap
-Sitemap: https://helha-eg.com/sitemap.xml
