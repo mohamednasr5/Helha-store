@@ -192,18 +192,23 @@ function renderOverviewRecentOrders() {
 
   const recent = AdminState.orders.slice(0, 5);
   if (recent.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">لا توجد طلبات واردة حتى الآن</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">لا توجد طلبات واردة حتى الآن</td></tr>`;
     return;
   }
 
   tbody.innerHTML = recent.map(o => `
-    <tr>
+    <tr style="cursor:pointer;" onclick="viewOrderDetails('${o.orderId || o.id}')" title="انقر لعرض تفاصيل الطلب">
       <td><strong>#${o.orderId || o.id}</strong></td>
       <td>${o.createdAt || "-"}</td>
       <td>${o.customerName || "-"}</td>
       <td>${o.customerPhone || "-"}</td>
       <td><strong>${o.totalAmount || 0} ج.م</strong></td>
       <td><span class="status-badge status-${o.status || 'new'}">${getOrderStatusArabic(o.status)}</span></td>
+      <td>
+        <button class="btn-admin-action" style="background:#e0f2fe; color:#0284c7; padding:4px 10px; font-size:0.8rem; border-radius:6px;" onclick="event.stopPropagation(); viewOrderDetails('${o.orderId || o.id}')">
+          👁️ عرض التفاصيل
+        </button>
+      </td>
     </tr>
   `).join("");
 }
@@ -1281,8 +1286,19 @@ function setupAdminNavigation() {
           pane.classList.add("active");
         }
       });
+
+      if (targetTab === "orders") {
+        renderAdminOrders();
+      } else if (targetTab === "products") {
+        renderAdminProducts();
+      }
     });
   });
+
+  window.switchAdminTab = function(tabName) {
+    const btn = document.querySelector(`.sidebar-menu .menu-item button[data-tab="${tabName}"]`);
+    if (btn) btn.click();
+  };
 
   // Filter orders tabs
   const orderFilters = document.querySelectorAll(".order-filter-btn");

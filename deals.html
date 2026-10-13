@@ -74,6 +74,7 @@
   <!-- Site Styles -->
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/product.css">
 </head>
 <body>
 
@@ -128,24 +129,67 @@
 
   <!-- Main Content -->
   <main>
-    <!-- Deals Hero Section -->
-    <section class="container" style="margin-top: 1.5rem;">
-      <div class="deals-hero-wrap">
-        <div class="deals-badge-tag">
-          <span>🔥</span> عروض وخصومات حصرية لفترة محدودة
+    <!-- Deals Hero Banner Section -->
+    <section class="hero-section" id="hero-section" style="padding-top: 1rem;">
+      <div class="container">
+        <div class="hero-banner-card">
+          <div class="hero-img-wrap">
+            <img id="hero-banner-img" src="assets/banner.jpg" alt="غلاف متجر حِلها - عروض وتخفيضات حصرية" class="hero-img">
+          </div>
+          <div class="hero-bottom-bar">
+            <div class="hero-text-content">
+              <div class="deals-badge-tag" style="margin-bottom:0.5rem; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3);">
+                <span>🔥</span> عروض وخصومات حصرية لفترة محدودة
+              </div>
+              <h2 id="hero-banner-title" style="font-size:1.6rem; font-weight:900; margin-bottom:0.35rem; color:#ffffff;">
+                عروض أدوات منزلية في مصر - باقات التوفير 🛒💡
+              </h2>
+              <p id="hero-banner-subtitle" style="font-size:0.95rem; color:rgba(255,255,255,0.92); line-height:1.6;">
+                وفّر فلوسك مع باقات الأدوات المنزلية بأسعار مناسبة في مصر، وحلول ذكية لتسهيل الأعمال المنزلية مع الدفع عند الاستلام بعد المعاينة.
+              </p>
+            </div>
+            <div class="hero-actions">
+              <a id="hero-banner-btn" href="#products-grid" class="btn-primary" style="font-weight:800;">
+                تسوق عروض التوفير الآن 🔥
+              </a>
+            </div>
+          </div>
         </div>
-        <h2 style="font-size:2.2rem; font-weight:900; margin-bottom:0.75rem; color:#ffffff;">
-          عروض أدوات منزلية في مصر 🛒💡
-        </h2>
-        <p style="font-size:1.1rem; max-width:680px; margin:0 auto; line-height:1.7; color:rgba(255,255,255,0.92);">
-          وفّر فلوسك مع باقات الأدوات المنزلية بأسعار مناسبة في مصر، وحلول ذكية لتسهيل الأعمال المنزلية مع الدفع عند الاستلام بعد المعاينة.
-        </p>
+      </div>
+    </section>
 
-        <!-- Floating features -->
-        <div style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-top:1.5rem; font-size:0.95rem; font-weight:700;">
-          <span>✓ الدفع عند الاستلام</span>
-          <span>✓ فحص المنتج قبل السداد</span>
-          <span>✓ ضمان استبدال 14 يوماً</span>
+    <!-- Trust Features Strip -->
+    <section class="features-strip" style="padding-top:1.25rem; padding-bottom:1.5rem;">
+      <div class="container">
+        <div class="features-grid">
+          <div class="feature-box">
+            <div class="feature-icon">🚚</div>
+            <div class="feature-info">
+              <h4>شحن وتوصيل سريع</h4>
+              <p>توصيل لباب بيتك بجميع المحافظات مع المعاينة قبل الاستلام</p>
+            </div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">💵</div>
+            <div class="feature-info">
+              <h4>الدفع عند الاستلام</h4>
+              <p>عاين وافحص منتجك بالكامل قبل دفع أي مليم</p>
+            </div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">🛡️</div>
+            <div class="feature-info">
+              <h4>ضمان استبدال 14 يوماً</h4>
+              <p>حق الاستبدال أو الاسترجاع وفق الشروط المعلنة</p>
+            </div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">✉️</div>
+            <div class="feature-info">
+              <h4>دعم واستجابة سريعة</h4>
+              <p>متابعة رسمية عبر البريد: Hellha.eg@gmail.com</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

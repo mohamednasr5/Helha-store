@@ -976,6 +976,38 @@ img {
   color: #ffffff;
 }
 
+/* Product Cards CTA Buy Button (Universal) */
+.btn-buy-now {
+  width: 100%;
+  background: var(--primary, #175349);
+  color: #ffffff !important;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 0.8rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none !important;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(23, 83, 73, 0.28);
+}
+
+.btn-buy-now:hover {
+  background: var(--primary-hover, #0f3d35);
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(23, 83, 73, 0.38);
+}
+
+.btn-buy-now:active {
+  transform: translateY(0);
+}
+
+
 /* --------------------------------------------------------------------------
    Empty / Loading State
    -------------------------------------------------------------------------- */

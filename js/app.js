@@ -179,8 +179,8 @@ function createProductCardHTML(prod) {
           <span class="stock-tag">متوفر بالمخزن</span>
         </div>
 
-        <div class="product-actions" style="grid-template-columns: 1fr;">
-          <a href="product.html?id=${prod.id}" class="btn-buy-now" style="text-decoration:none; padding:0.65rem 1rem; font-size:0.95rem; border-radius:8px;">
+        <div class="product-actions" style="grid-template-columns: 1fr; margin-top: auto; padding-top: 0.65rem;">
+          <a href="product.html?id=${prod.id}" class="btn-buy-now" style="display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#175349; color:#ffffff !important; font-weight:800; font-size:0.95rem; text-decoration:none; padding:0.8rem 1rem; border-radius:8px; box-shadow:0 4px 12px rgba(23,83,73,0.25); width:100%;">
             <span>اضغط هنا للشراء 🚚</span>
           </a>
         </div>
