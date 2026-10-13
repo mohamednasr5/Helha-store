@@ -18,6 +18,12 @@
   --radius-md: 12px;
 }
 
+html, body.product-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
 body.product-page {
   background-color: #fbfbfb;
   color: var(--text-dark);

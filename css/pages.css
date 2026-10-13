@@ -3,6 +3,12 @@
    Tracking, Policy, Shipping & Deals Pages
    ========================================================================== */
 
+html, body {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
 /* Page Header / Hero Banner */
 .page-banner {
   background: linear-gradient(135deg, var(--primary) 0%, #0a2920 100%);

@@ -22,6 +22,14 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCartUI();
   initBannersListener();
   initStoreCategories();
+
+  if (window.location.hash === "#cart") {
+    setTimeout(() => {
+      if (typeof openCartDrawer === "function") {
+        openCartDrawer();
+      }
+    }, 350);
+  }
 });
 
 /**
