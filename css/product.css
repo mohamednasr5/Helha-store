@@ -4,14 +4,14 @@
    ========================================================================== */
 
 :root {
-  --primary-btn: #8c5b3e; /* Warm rich brown/caramel tone as in screenshot */
-  --primary-btn-hover: #73482e;
+  --primary-btn: #16a34a; /* Vibrant emerald green brand button */
+  --primary-btn-hover: #15803d;
   --theme-teal: #175349;
   --theme-gold: #f3a824;
   --theme-coral: #e85d5d;
   --bg-page: #ffffff;
   --border-light: #e5e7eb;
-  --border-active: #8c5b3e;
+  --border-active: #16a34a;
   --text-dark: #1f2937;
   --text-muted: #6b7280;
   --radius-sm: 8px;
@@ -157,11 +157,11 @@ body.product-page {
 /* Big CTA Buttons */
 .btn-buy-now {
   width: 100%;
-  background: var(--primary-btn);
-  color: #ffffff;
-  font-size: 1.15rem;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  color: #ffffff !important;
+  font-size: 1.2rem;
   font-weight: 800;
-  padding: 0.95rem 1.5rem;
+  padding: 1rem 1.5rem;
   border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
@@ -170,12 +170,14 @@ body.product-page {
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(140, 91, 62, 0.35);
+  box-shadow: 0 4px 15px rgba(22, 163, 74, 0.35);
+  text-decoration: none;
 }
 
 .btn-buy-now:hover {
-  background: var(--primary-btn-hover);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);
 }
 
 .prod-meta-actions {
@@ -485,4 +487,236 @@ body.product-page {
   .product-container {
     padding: 1rem 1rem 4rem;
   }
+}
+
+/* ==========================================================================
+   RECOMMENDED PRODUCTS CAROUSEL COMPONENT (منتجات مقترحة لك)
+   ========================================================================== */
+.recommended-products-section {
+  margin-top: 2.75rem;
+  padding-top: 1.75rem;
+  border-top: 2px dashed #e2e8f0;
+}
+
+.recommended-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.recommended-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.recommended-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: fit-content;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #fde68a;
+}
+
+.recommended-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #175349;
+  margin: 0;
+}
+
+.recommended-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rec-nav-arrow {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #175349;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 900;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  user-select: none;
+}
+
+.rec-nav-arrow:hover {
+  background: #175349;
+  color: #ffffff;
+  border-color: #175349;
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(23, 83, 73, 0.25);
+}
+
+.rec-nav-arrow:active {
+  transform: scale(0.96);
+}
+
+.recommended-track-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.recommended-track {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  padding: 0.35rem 0.25rem 1rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.recommended-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recommended-track::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.recommended-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recommended-card {
+  flex: 0 0 200px;
+  min-width: 200px;
+  max-width: 200px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  scroll-snap-align: start;
+  text-decoration: none;
+  color: inherit;
+}
+
+.recommended-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(23, 83, 73, 0.12);
+  border-color: #16a34a;
+}
+
+.rec-card-img-wrap {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.rec-card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.recommended-card:hover .rec-card-img-wrap img {
+  transform: scale(1.06);
+}
+
+.rec-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+}
+
+.rec-card-body {
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+
+.rec-card-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.6em;
+}
+
+.rec-card-pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.rec-current-price {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #16a34a;
+}
+
+.rec-orig-price {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.rec-card-btn {
+  width: 100%;
+  padding: 0.55rem;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+}
+
+.rec-card-btn:hover {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
 }

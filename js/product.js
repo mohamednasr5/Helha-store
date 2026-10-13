@@ -10,6 +10,8 @@ const ProductPage = {
   appliedCoupon: null,
   shippingFee: 50,
   shippingSettings: null,
+  recommendedProducts: [],
+  autoScrollTimer: null,
 
   // Governorates of Egypt
   governorates: [
@@ -25,6 +27,7 @@ const ProductPage = {
     this.initShippingListener();
     await this.loadProduct();
     this.setupListeners();
+    await this.loadRecommendedProducts();
   },
 
   initShippingListener() {
@@ -596,6 +599,124 @@ const ProductPage = {
     }
 
     if (overlay) overlay.classList.add("active");
+  },
+
+  async loadRecommendedProducts() {
+    const track = document.getElementById("recommended-products-track");
+    if (!track) return;
+
+    let prods = [];
+    if (typeof db !== "undefined" && db) {
+      try {
+        const snap = await db.ref("products").once("value");
+        const val = snap.val();
+        if (val) {
+          prods = Object.keys(val).map(key => ({ ...val[key], id: key }));
+        }
+      } catch (err) {
+        console.warn("Could not load recommended products from Firebase:", err);
+      }
+    }
+
+    if (!prods.length && typeof DEMO_PRODUCTS !== "undefined") {
+      prods = [...DEMO_PRODUCTS];
+    }
+
+    // Filter out current product
+    const currentId = this.currentProduct ? String(this.currentProduct.id) : "";
+    this.recommendedProducts = prods.filter(p => String(p.id) !== currentId);
+
+    this.renderRecommendedProducts();
+    this.initRecommendedAutoScroll();
+  },
+
+  renderRecommendedProducts() {
+    const track = document.getElementById("recommended-products-track");
+    if (!track) return;
+
+    if (!this.recommendedProducts || !this.recommendedProducts.length) {
+      const section = document.getElementById("recommended-products-section");
+      if (section) section.style.display = "none";
+      return;
+    }
+
+    track.innerHTML = this.recommendedProducts.map(p => {
+      const originalPrice = p.originalPrice || (p.price ? Math.round(p.price * 1.15) : 0);
+      const discountPct = (originalPrice > p.price) ? Math.round(((originalPrice - p.price) / originalPrice) * 100) : null;
+      const img = p.image || "assets/logo.jpg";
+      const name = p.name || "منتج متجر حِلها";
+
+      return `
+        <div class="recommended-card" onclick="window.location.href='product.html?id=${p.id}'">
+          <div class="rec-card-img-wrap">
+            <img src="${img}" alt="${name}" loading="lazy" onerror="this.src='assets/logo.jpg'">
+            ${discountPct ? `<span class="rec-card-badge">خصم ${discountPct}%</span>` : ''}
+          </div>
+          <div class="rec-card-body">
+            <h4 class="rec-card-title">${name}</h4>
+            <div class="rec-card-pricing">
+              <span class="rec-current-price">${p.price} ج.م</span>
+              ${originalPrice ? `<span class="rec-orig-price">${originalPrice} ج.م</span>` : ''}
+            </div>
+            <button type="button" class="rec-card-btn" onclick="event.stopPropagation(); window.location.href='product.html?id=${p.id}'">
+              <span>طلب المنتج</span> <span>🛍️</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // Pause auto-scroll on hover / touch
+    track.addEventListener("mouseenter", () => {
+      if (this.autoScrollTimer) clearInterval(this.autoScrollTimer);
+    });
+    track.addEventListener("mouseleave", () => {
+      this.initRecommendedAutoScroll();
+    });
+    track.addEventListener("touchstart", () => {
+      if (this.autoScrollTimer) clearInterval(this.autoScrollTimer);
+    }, { passive: true });
+    track.addEventListener("touchend", () => {
+      this.initRecommendedAutoScroll();
+    }, { passive: true });
+  },
+
+  scrollRecommended(direction) {
+    const track = document.getElementById("recommended-products-track");
+    if (!track) return;
+
+    const scrollStep = 220;
+    // In RTL, left arrow goes forward (-scrollStep), right arrow goes backward (+scrollStep)
+    const amount = direction === "right" ? scrollStep : -scrollStep;
+    track.scrollBy({ left: amount, behavior: "smooth" });
+
+    // Reset auto-scroll interval so user has a full minute
+    this.resetRecommendedTimer();
+  },
+
+  initRecommendedAutoScroll() {
+    if (this.autoScrollTimer) clearInterval(this.autoScrollTimer);
+    // User requested: moves automatically every minute (60,000 ms)
+    this.autoScrollTimer = setInterval(() => {
+      const track = document.getElementById("recommended-products-track");
+      if (!track) return;
+
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const currentScroll = Math.abs(track.scrollLeft);
+
+      if (currentScroll >= maxScroll - 20) {
+        // Return smoothly to start
+        track.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        // Scroll to next product
+        track.scrollBy({ left: -220, behavior: "smooth" });
+      }
+    }, 60000); // 1 minute (60 seconds)
+  },
+
+  resetRecommendedTimer() {
+    if (this.autoScrollTimer) clearInterval(this.autoScrollTimer);
+    this.initRecommendedAutoScroll();
   }
 };
 

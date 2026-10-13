@@ -244,6 +244,31 @@
         </button>
       </form>
     </section>
+
+    <!-- Recommended Products Carousel (منتجات مقترحة لك) -->
+    <section class="recommended-products-section" id="recommended-products-section">
+      <div class="recommended-header">
+        <div class="recommended-title-box">
+          <span class="recommended-badge">✨ مقترحة لك</span>
+          <h3 class="recommended-title">منتجات مميزة قد تنال إعجابك</h3>
+        </div>
+        <div class="recommended-nav-controls">
+          <button type="button" class="rec-nav-arrow rec-arrow-prev" id="rec-arrow-prev" onclick="ProductPage.scrollRecommended('right')" title="السابق" aria-label="السابق">
+            <span>&#10095;</span>
+          </button>
+          <button type="button" class="rec-nav-arrow rec-arrow-next" id="rec-arrow-next" onclick="ProductPage.scrollRecommended('left')" title="التالي" aria-label="التالي">
+            <span>&#10094;</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Horizontal Carousel Track Wrap -->
+      <div class="recommended-track-wrap">
+        <div class="recommended-track" id="recommended-products-track">
+          <!-- Populated dynamically via ProductPage.renderRecommended() -->
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- Site Footer -->
