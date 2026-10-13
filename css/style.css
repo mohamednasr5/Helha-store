@@ -134,15 +134,18 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   Main Navigation
+   Main Navigation & Standalone Pages Header (.site-header)
    -------------------------------------------------------------------------- */
-.navbar {
-  background: rgba(255, 255, 255, 0.95);
+.navbar,
+.site-header {
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 90;
+  width: 100%;
   transition: var(--transition);
 }
 
@@ -154,39 +157,90 @@ img {
   gap: 1.5rem;
 }
 
-.brand {
+.brand,
+.logo-wrapper {
   display: flex;
   align-items: center;
   gap: 0.85rem;
   flex-shrink: 0;
+  cursor: pointer;
+  text-decoration: none;
 }
 
-.brand-logo {
-  width: 52px;
-  height: 52px;
+.brand-logo,
+.logo-img {
+  width: 52px !important;
+  height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
   border-radius: 12px;
   object-fit: cover;
   box-shadow: var(--shadow-sm);
   border: 2px solid var(--primary-light);
+  display: block;
+  flex-shrink: 0;
 }
 
-.brand-info {
+.brand-info,
+.brand-text {
   display: flex;
   flex-direction: column;
 }
 
-.brand-title {
+.brand-title,
+.brand-text h1 {
   font-size: 1.45rem;
   font-weight: 800;
   color: var(--primary);
   line-height: 1.2;
   letter-spacing: -0.5px;
+  margin: 0;
 }
 
-.brand-tagline {
+.brand-tagline,
+.brand-text .tagline {
   font-size: 0.75rem;
   color: var(--secondary);
   font-weight: 700;
+  display: block;
+}
+
+.site-nav-links {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-item-link {
+  text-decoration: none;
+  color: var(--dark);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-item-link:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.nav-item-link.active-link {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  font-weight: 800;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 /* Search Bar */
@@ -412,7 +466,8 @@ img {
   flex-shrink: 0;
 }
 
-.btn-icon {
+.btn-icon,
+.cart-trigger-btn {
   width: 44px;
   height: 44px;
   border-radius: var(--radius-full);
@@ -425,9 +480,11 @@ img {
   position: relative;
   transition: var(--transition);
   border: 1px solid var(--border);
+  cursor: pointer;
 }
 
-.btn-icon:hover {
+.btn-icon:hover,
+.cart-trigger-btn:hover {
   background: var(--primary-light);
   color: var(--primary);
   border-color: var(--primary);
@@ -1463,6 +1520,27 @@ img {
   gap: 1rem;
 }
 
+.footer-features-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.footer-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+}
+
+.footer-feature-item span:first-child {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
 /* --------------------------------------------------------------------------
    Toast Notifications
    -------------------------------------------------------------------------- */
@@ -1636,6 +1714,10 @@ img {
   .footer-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+
+  .site-footer {
+    padding-bottom: 5.5rem !important; /* Space for sticky mobile bottom navigation */
   }
 
   .products-grid {

@@ -73,17 +73,17 @@
       </div>
 
       <!-- Quick Nav Links -->
-      <nav style="display:flex; gap:1.25rem; align-items:center; flex-wrap:wrap;">
-        <a href="index.html" style="text-decoration:none; color:var(--dark); font-weight:700; font-size:0.95rem; display:flex; align-items:center; gap:0.35rem;">
+      <nav class="site-nav-links">
+        <a href="index.html" class="nav-item-link">
           🏠 الرئيسية
         </a>
-        <a href="deals.html" style="text-decoration:none; color:var(--coral); font-weight:800; font-size:0.95rem; display:flex; align-items:center; gap:0.35rem;">
+        <a href="deals.html" class="nav-item-link" style="color:var(--coral); font-weight:800;">
           🔥 عروض التوفير
         </a>
-        <a href="track.html" style="text-decoration:none; color:var(--dark); font-weight:600; font-size:0.92rem;">
+        <a href="track.html" class="nav-item-link">
           📦 تتبع الطلبات
         </a>
-        <a href="return-policy.html" style="text-decoration:none; color:var(--dark); font-weight:600; font-size:0.92rem;">
+        <a href="return-policy.html" class="nav-item-link">
           🛡️ الاسترجاع والاستبدال
         </a>
       </nav>
@@ -182,7 +182,7 @@
         </h3>
         <ul class="policy-list">
           <li>بمجرد شحن طلبك، ستتلقى إشعاراً يفيد بأن الشحنة أصبحت بحوزة مندوب التوصيل.</li>
-          <li>يقوم مندوب الشحن بالتواصل معك هاتفياً أو عبر واتساب قبل الوصول لتأكيد العنوان وتحديد التوقيت الأنسب لك للاستلام.</li>
+          <li>يقوم مندوب الشحن بالتواصل معك هاتفياً قبل الوصول لتأكيد العنوان وتحديد التوقيت الأنسب لك للاستلام.</li>
           <li>يمكنك طلب تأجيل موعد الاستلام أو تغيير العنوان بالتنسيق مع المندوب بكل سهولة.</li>
           <li>عند وصول المندوب، قم بفحص ومعاينة الشحنة من الخارج والتأكد منها، ثم سدد قيمة الطلب نقداً للمندوب.</li>
         </ul>
@@ -225,7 +225,7 @@
           هل تنتظر طلباً قيد التوصيل؟
         </h4>
         <p style="color:var(--dark-soft); font-size:0.92rem; margin-bottom:1.25rem;">
-          تابع خط سير شحنتك الآن أو تواصل مباشرة مع فريق المتابعة عبر واتساب.
+          تابع خط سير شحنتك الآن أو تواصل مباشرة مع فريق المتابعة عبر البريد Hellha.eg@gmail.com.
         </p>
         <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
           <a href="track.html" class="btn-buy-now" style="text-decoration:none; padding:0.75rem 1.5rem;">
@@ -244,51 +244,59 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
+        <!-- Col 1: Store Intro & SEO Description -->
         <div class="footer-brand">
           <h4>حِلّها - Helha</h4>
           <p>
-            متجرك الأول للحلول الذكية والأدوات المبتكرة. نهدف لتسهيل حياتك اليومية وحل المشاكل المنزلية بأفضل جودة وأنسب سعر.
+            متجر حِلها وجهتك الأولى للتسوق الإلكتروني وشراء أدوات منزلية أونلاين في مصر. نقدم أفضل منتجات منزلية عملية وحلول ذكية لتسهيل الأعمال المنزلية، وأدوات منزلية بأسعار مناسبة مع الدفع عند الاستلام بعد المعاينة.
           </p>
           <div style="margin-top: 1rem; color: var(--secondary); font-weight: 700;">
             كل مشكلة ليها حلّها ✨
           </div>
+          <div style="margin-top: 0.6rem; font-size: 0.85rem; color: rgba(255,255,255,0.75);">
+            ✉️ البريد الرسمي للدعم: <a href="mailto:Hellha.eg@gmail.com" style="color:var(--secondary); text-decoration:underline;">Hellha.eg@gmail.com</a>
+          </div>
         </div>
 
+        <!-- Col 2: Store Categories & Internal Links -->
         <div class="footer-col">
           <h5>أقسام المتجر</h5>
           <ul class="footer-links">
-            <li><a href="index.html?cat=kitchen">حلول المطبخ</a></li>
-            <li><a href="index.html?cat=cleaning">أدوات التنظيف</a></li>
-            <li><a href="index.html?cat=home">حلول منزلية</a></li>
-            <li><a href="deals.html">عروض التوفير</a></li>
+            <li><a href="index.html">🏠 تسوق منتجات منزلية أونلاين</a></li>
+            <li><a href="index.html?cat=kitchen">🍳 حلول وأدوات المطبخ الذكية</a></li>
+            <li><a href="index.html?cat=cleaning">🧹 أدوات التنظيف المنزلية العملية</a></li>
+            <li><a href="index.html?cat=home">🛋️ منتجات مبتكرة للمنزل</a></li>
+            <li><a href="deals.html">🔥 عروض أدوات منزلية في مصر</a></li>
           </ul>
         </div>
 
+        <!-- Col 3: Customer Care & Policies -->
         <div class="footer-col">
-          <h5>خدمات العملاء</h5>
+          <h5>خدمات العملاء والضمان</h5>
           <ul class="footer-links">
-            <li><a href="support.html">مركز الدعم والمساعدة 🛡️</a></li>
-            <li><a href="contact.html">اتصل بنا (Hellha.eg@gmail.com) ✉️</a></li>
-            <li><a href="track.html">تتبع ومتابعة الطلبات 🚚</a></li>
-            <li><a href="return-policy.html">سياسة الاسترجاع والاستبدال</a></li>
-            <li><a href="shipping.html" style="color:var(--secondary); font-weight:700;">الشحن والتوصيل</a></li>
+            <li><a href="track.html">📦 تتبع ومتابعة الطلبات بالرقم</a></li>
+            <li><a href="support.html">🛡️ مركز الدعم والمساعدة الفنية</a></li>
+            <li><a href="contact.html">✉️ اتصل بنا ومراسلة الإدارة</a></li>
+            <li><a href="return-policy.html">📄 سياسة الاستبدال والاسترجاع</a></li>
+            <li><a href="shipping.html" style="color:var(--secondary); font-weight:700;">🚚 تفاصيل الشحن والتوصيل في مصر</a></li>
           </ul>
         </div>
 
+        <!-- Col 4: Trust & Shopping Features -->
         <div class="footer-col">
-          <h5>طرق الدفع والتوصيل</h5>
-          <p style="font-size:0.85rem; color:rgba(255,255,255,0.75); margin-bottom:0.75rem;">
-            💵 الدفع نقدياً عند الاستلام بعد المعاينة.<br>
-            🚚 شحن سريع ومغطى لجميع أنحاء الجمهورية.
-          </p>
-          <div style="font-size:0.85rem; color:var(--secondary); font-weight:700;">
-            دعم فني واستفسارات: عبر البريد <a href="mailto:Hellha.eg@gmail.com" style="text-decoration:underline;">Hellha.eg@gmail.com</a>
-          </div>
+          <h5>مزايا التسوق والضمان</h5>
+          <ul class="footer-features-list">
+            <li class="footer-feature-item"><span>💵</span><span>الدفع عند الاستلام بعد المعاينة</span></li>
+            <li class="footer-feature-item"><span>🔍</span><span>فحص وتجربة المنتج قبل سداد القيمة</span></li>
+            <li class="footer-feature-item"><span>🚚</span><span>توصيل سريع لكافة محافظات مصر</span></li>
+            <li class="footer-feature-item"><span>🛡️</span><span>ضمان الجودة وأفضل قيمة مقابل سعر</span></li>
+            <li class="footer-feature-item"><span>📧</span><span>خدمة عملاء رسمية عبر البريد</span></li>
+          </ul>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <div>جميع الحقوق محفوظة © متجر حِلها (Helha) 2026</div>
+        <div>جميع الحقوق محفوظة © 2026 متجر حِلها الإلكتروني - Helha (helha-eg.com)</div>
         <div>برمجة وتطوير المهندس <a href="https://www.facebook.com/en.mohamed.nasr" target="_blank" rel="noopener noreferrer" style="color: var(--secondary); font-weight: 700; text-decoration: underline;">محمد حماد</a></div>
       </div>
     </div>

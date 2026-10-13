@@ -62,8 +62,12 @@ const ProductPage = {
     const p = this.currentProduct;
     if (!p) return;
 
-    // Document Title
-    document.title = `${p.name} | متجر حِلها`;
+    // Dynamic SEO Document Title & Meta Description (Long-Tail Target)
+    document.title = `سعر ${p.name} في مصر | شراء أونلاين مع التوصيل - متجر حِلها`;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.content = `تعرف على سعر ومواصفات ${p.name} في مصر. تسوق الآن شراء أونلاين بأفضل سعر مع التوصيل لكافة المحافظات والدفع عند الاستلام بعد المعاينة من متجر حِلها.`;
+    }
 
     // Image
     const imgEl = document.getElementById("prod-hero-img");
