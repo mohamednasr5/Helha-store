@@ -142,45 +142,53 @@ const ProductPage = {
     const container = document.getElementById("offers-list-container");
     if (!container) return;
 
-    const unitPrice = p.price;
-    const origUnitPrice = p.originalPrice || Math.round(unitPrice * 1.15);
+    const origUnitPrice = p.originalPrice || Math.round(p.price * 1.15);
 
-    // Dynamic Bundle pricing
-    // 1 item
-    const offer1Price = unitPrice;
-    // 2 items: 12% discount on pair
-    const offer2Price = Math.round(unitPrice * 2 * 0.88);
-    const offer2Unit = Math.round(offer2Price / 2);
-    // 3 items: 18% discount
-    const offer3Price = Math.round(unitPrice * 3 * 0.82);
-    const offer3Unit = Math.round(offer3Price / 3);
+    if (p.offers && p.offers.length > 0) {
+      this.offers = p.offers.map((off, idx) => ({
+        index: idx,
+        qty: Number(off.qty) || (idx + 1),
+        title: off.title,
+        totalPrice: Number(off.totalPrice),
+        unitPrice: off.unitPrice || Math.round(Number(off.totalPrice) / (Number(off.qty) || 1)),
+        note: off.note || "",
+        originalUnit: origUnitPrice
+      }));
+    } else {
+      const unitPrice = p.price;
+      const offer1Price = unitPrice;
+      const offer2Price = Math.round(unitPrice * 2 * 0.88);
+      const offer2Unit = Math.round(offer2Price / 2);
+      const offer3Price = Math.round(unitPrice * 3 * 0.82);
+      const offer3Unit = Math.round(offer3Price / 3);
 
-    this.offers = [
-      {
-        index: 0,
-        qty: 1,
-        title: `اشتري ${p.name.split(" ")[0] || "المنتج"} بسعر ${offer1Price}ج فقط`,
-        totalPrice: offer1Price,
-        unitPrice: offer1Price,
-        originalUnit: origUnitPrice
-      },
-      {
-        index: 1,
-        qty: 2,
-        title: `اشتري 2 ${p.name.split(" ")[0] || "منتجات"} بـ ${offer2Price}ج فقط`,
-        totalPrice: offer2Price,
-        unitPrice: offer2Unit,
-        originalUnit: origUnitPrice
-      },
-      {
-        index: 2,
-        qty: 3,
-        title: `اشتري 3 ${p.name.split(" ")[0] || "منتجات"} بـ ${offer3Price}ج فقط`,
-        totalPrice: offer3Price,
-        unitPrice: offer3Unit,
-        originalUnit: origUnitPrice
-      }
-    ];
+      this.offers = [
+        {
+          index: 0,
+          qty: 1,
+          title: `اشتري ${p.name.split(" ")[0] || "المنتج"} بسعر ${offer1Price}ج فقط`,
+          totalPrice: offer1Price,
+          unitPrice: offer1Price,
+          originalUnit: origUnitPrice
+        },
+        {
+          index: 1,
+          qty: 2,
+          title: `اشتري 2 ${p.name.split(" ")[0] || "منتجات"} بـ ${offer2Price}ج فقط`,
+          totalPrice: offer2Price,
+          unitPrice: offer2Unit,
+          originalUnit: origUnitPrice
+        },
+        {
+          index: 2,
+          qty: 3,
+          title: `اشتري 3 ${p.name.split(" ")[0] || "منتجات"} بـ ${offer3Price}ج فقط`,
+          totalPrice: offer3Price,
+          unitPrice: offer3Unit,
+          originalUnit: origUnitPrice
+        }
+      ];
+    }
 
     container.innerHTML = this.offers.map((offer, idx) => `
       <div class="offer-card ${idx === this.selectedOfferIndex ? 'selected' : ''}" onclick="ProductPage.selectOffer(${idx})">
@@ -190,10 +198,12 @@ const ProductPage = {
           </div>
           <span class="offer-label">${offer.title}</span>
         </div>
-        ${idx > 0 ? `
+        ${offer.note || idx > 0 ? `
           <div class="offer-meta-details">
-            <div>سعر القطعة: <strong>${offer.unitPrice} ج.م</strong></div>
-            <div>السعر الأصلي: <span class="offer-original-price">${offer.originalUnit} ج.م</span></div>
+            ${offer.note ? `<div>${offer.note}</div>` : `
+              <div>سعر القطعة: <strong>${offer.unitPrice} ج.م</strong></div>
+              <div>السعر الأصلي: <span class="offer-original-price">${offer.originalUnit} ج.م</span></div>
+            `}
           </div>
         ` : ''}
       </div>
@@ -391,20 +401,12 @@ const ProductPage = {
   showSuccessModal(order) {
     const overlay = document.getElementById("success-overlay");
     const codeEl = document.getElementById("success-order-code");
-    const waBtn = document.getElementById("success-whatsapp-btn");
 
     if (codeEl) codeEl.textContent = `#${order.orderId}`;
     
     const trackBtn = document.getElementById("success-track-btn");
     if (trackBtn) {
       trackBtn.href = `track.html?order=${order.orderId}`;
-    }
-
-    if (waBtn) {
-      const text = encodeURIComponent(
-        `مرحباً متجر حِلها، قمت بعمل طلب شراء برقم #${order.orderId} للمنتج (${order.items[0].name}) بقيمة ${order.totalAmount} ج.م وأود المتابعة.`
-      );
-      waBtn.href = `https://wa.me/201000000000?text=${text}`;
     }
 
     if (overlay) overlay.classList.add("active");

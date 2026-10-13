@@ -85,6 +85,12 @@
           </button>
         </li>
         <li class="menu-item">
+          <button data-tab="messages">
+            <span class="menu-icon">✉️</span>
+            <span>رسائل واستفسارات العملاء</span>
+          </button>
+        </li>
+        <li class="menu-item">
           <button data-tab="settings">
             <span class="menu-icon">⚙️</span>
             <span>الإعدادات والأمان</span>
@@ -199,6 +205,9 @@
             <div class="panel-header">
               <h3>قائمة المنتجات والحلول المعروضة 📦</h3>
               <div class="panel-actions">
+                <button class="btn-admin-action" style="background:#e0f2fe; color:#0369a1;" onclick="openCategoryModal()" title="إضافة وتعديل أقسام وتصنيفات المتجر">
+                  🏷️ إدارة الأقسام
+                </button>
                 <button class="btn-admin-action btn-danger-outline" onclick="deleteAllDemoProducts()" title="حذف جميع المنتجات ذات الوسم التجريبي بضغطة واحدة">
                   🗑️ مسح المنتجات التجريبية
                 </button>
@@ -211,7 +220,7 @@
               </div>
             </div>
 
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.25rem;">
+            <div id="admin-category-filter-bar" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.25rem;">
               <button class="cat-btn admin-prod-cat-btn active" data-cat="all" onclick="filterAdminProducts('all')">الكل (جميع الأقسام)</button>
               <button class="cat-btn admin-prod-cat-btn" data-cat="kitchen" onclick="filterAdminProducts('kitchen')">🍳 حلول المطبخ</button>
               <button class="cat-btn admin-prod-cat-btn" data-cat="cleaning" onclick="filterAdminProducts('cleaning')">🧹 أدوات التنظيف</button>
@@ -483,7 +492,43 @@
           </div>
         </section>
 
-        <!-- TAB 5: GENERAL SETTINGS & SECURITY -->
+        <!-- TAB 6: CUSTOMER MESSAGES & INQUIRIES -->
+        <section id="tab-messages" class="tab-pane">
+          <div class="panel-card">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+              <div>
+                <h3 style="margin:0;">رسائل واستفسارات العملاء ✉️</h3>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.3rem;">
+                  جميع الرسائل وتذاكر الدعم المرسلة من صفحتي اتصل بنا والدعم الفني والموجهة إلى <strong>Hellha.eg@gmail.com</strong>
+                </p>
+              </div>
+              <span id="messages-count-badge" style="background:#e0f2fe; color:#0369a1; font-weight:800; padding:0.4rem 0.85rem; border-radius:20px; font-size:0.85rem;">
+                0 رسالة واردة
+              </span>
+            </div>
+
+            <div class="table-responsive" style="padding:1rem;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>العميل</th>
+                    <th>الهاتف</th>
+                    <th>المحافظة / العنوان</th>
+                    <th>الموضوع</th>
+                    <th>نص الرسالة</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-messages-tbody">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 7: GENERAL SETTINGS & SECURITY -->
         <section id="tab-settings" class="tab-pane">
           <div class="panel-card">
             <div class="panel-header">
@@ -603,6 +648,32 @@
             <input type="number" id="prod-stock" class="form-control" value="50">
           </div>
 
+          <!-- Product Offers & Bundles Section (عروض وباقات الكميات المتعددة) -->
+          <div class="form-group" style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:1.2rem; margin: 1.25rem 0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.85rem;">
+              <div>
+                <label class="form-label" style="font-size:0.98rem; color:var(--admin-primary); margin:0; font-weight:800;">
+                  🎁 عروض وباقات الكميات داخل صفحة المنتج (Offers & Bundles)
+                </label>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin:0.25rem 0 0;">
+                  أضف عروضاً متعددة مثل: (اشتري 1 بسعر 499ج، اشتري 2 بسعر 878ج، اشتري 3 بسعر 1228ج) ليختار العميل العرض المفضل لديه.
+                </p>
+              </div>
+              <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                <button type="button" class="btn-admin-action" style="background:#e0f2fe; color:#0369a1; font-size:0.8rem; padding:0.4rem 0.75rem;" onclick="generateAutoOffers()" title="توليد 3 باقات تلقائية بناءً على السعر الحالي">
+                  ⚡ توليد باقات تلقائية
+                </button>
+                <button type="button" class="btn-admin-action btn-add" style="font-size:0.8rem; padding:0.4rem 0.75rem;" onclick="addOfferRow()">
+                  ➕ إضافة عرض جديد
+                </button>
+              </div>
+            </div>
+
+            <div id="prod-offers-container" style="display:flex; flex-direction:column; gap:0.75rem;">
+              <!-- Dynamic offer rows populated via JS -->
+            </div>
+          </div>
+
           <!-- Image Upload Area -->
           <div class="form-group">
             <label class="form-label">صورة المنتج (رفع إلى Cloudflare R2 أو رابط مباشر):</label>
@@ -648,6 +719,42 @@
       </div>
       <div id="order-details-modal-body" class="modal-body">
         <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       5. Category Management Modal
+       ====================================================================== -->
+  <div id="category-modal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3>إدارة وتخصيص الأقسام والتصنيفات 🏷️</h3>
+        <button class="btn-close" onclick="closeCategoryModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Add Category Form -->
+        <form id="add-category-form" onsubmit="handleAddNewCategory(event)" style="background:#f8fafc; border:1px solid #e2e8f0; padding:1.1rem; border-radius:10px; margin-bottom:1.5rem;">
+          <h4 style="font-size:0.95rem; color:var(--admin-primary); margin-bottom:0.75rem;">➕ إضافة قسم جديد للمتجر</h4>
+          <div style="display:grid; grid-template-columns: 80px 1fr auto; gap:0.6rem; align-items:end;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-size:0.8rem;">الأيقونة</label>
+              <input type="text" id="new-cat-icon" class="form-control" placeholder="✨" value="🏷️" style="text-align:center;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-size:0.8rem;">اسم القسم الجديد <span class="req">*</span></label>
+              <input type="text" id="new-cat-name" class="form-control" placeholder="مثال: أدوات العناية الشخصية" required>
+            </div>
+            <button type="submit" class="btn-admin-action btn-add" style="padding:0.75rem 1rem; white-space:nowrap; height:44px;">
+              إضافة القسم ➕
+            </button>
+          </div>
+        </form>
+
+        <h4 style="font-size:0.92rem; margin-bottom:0.6rem; color:var(--text-main);">الأقسام والتصنيفات المفعلة حالياً:</h4>
+        <div id="categories-manage-list" style="display:flex; flex-direction:column; gap:0.5rem; max-height:280px; overflow-y:auto; padding-right:0.2rem;">
+          <!-- Dynamically populated via JS -->
+        </div>
       </div>
     </div>
   </div>

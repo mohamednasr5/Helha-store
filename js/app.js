@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
   updateCartUI();
   initBannersListener();
+  initStoreCategories();
 });
 
 /**
@@ -528,10 +529,7 @@ function showOrderSuccessModal(order) {
   }
 
   if (waBtn) {
-    const waText = encodeURIComponent(
-      `مرحباً متجر حِلها، قمت بعمل طلب شراء برقم #${order.orderId} بقيمة ${order.totalAmount} ج.م، وأود متابعة حالة الشحن.`
-    );
-    waBtn.href = `https://wa.me/201000000000?text=${waText}`;
+    waBtn.href = "contact.html";
   }
 
   if (successOverlay) successOverlay.classList.add("active");
@@ -875,5 +873,60 @@ function initBannersListener() {
         }
       }
     }
+  });
+}
+
+/**
+ * ============================================================================
+ * 9. Real-time Categories Sync for Store Front
+ * ============================================================================
+ */
+function initStoreCategories() {
+  if (typeof db === "undefined" || !db) return;
+
+  db.ref("categories").on("value", (snap) => {
+    const data = snap.val();
+    const container = document.getElementById("category-tabs-container");
+    if (!container) return;
+
+    const DEFAULT_CATS = [
+      { id: "all", name: "⚡ جميع المنتجات" },
+      { id: "kitchen", name: "🍳 حلول المطبخ" },
+      { id: "cleaning", name: "🧹 أدوات التنظيف" },
+      { id: "home", name: "🏠 حلول منزلية" },
+      { id: "deals", name: "🔥 عروض التوفير" }
+    ];
+
+    let cats = [...DEFAULT_CATS];
+    if (data) {
+      Object.keys(data).forEach((k) => {
+        const item = data[k];
+        const catId = item.id || k;
+        if (!cats.some((c) => c.id === catId)) {
+          cats.push({
+            id: catId,
+            name: `${item.icon || "🏷️"} ${item.name}`
+          });
+        }
+      });
+    }
+
+    container.innerHTML = cats
+      .map(
+        (c) => `
+      <button class="cat-btn ${AppState.currentCategory === c.id ? "active" : ""}" data-category="${c.id}">${c.name}</button>
+    `
+      )
+      .join("");
+
+    // Re-bind click listeners
+    container.querySelectorAll(".cat-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        container.querySelectorAll(".cat-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        AppState.currentCategory = btn.getAttribute("data-category") || "all";
+        renderProducts();
+      });
+    });
   });
 }

@@ -8,6 +8,9 @@ const AdminState = {
   orders: [],
   analytics: {},
   settings: {},
+  categories: [],
+  messages: [],
+  currentProductCategoryFilter: "all",
   currentOrderFilter: "all",
   editingProductId: null,
   workerUrl: "https://spyone.nonm1724.workers.dev",
@@ -151,7 +154,9 @@ function initDashboard() {
     updateDashboardStats();
   });
 
-  // 4. Load Settings
+  // 4. Load Settings & Categories & Messages
+  initCategoriesListener();
+  initMessagesListener();
   loadAdminSettings();
   loadBannerSettings();
 }
@@ -204,8 +209,156 @@ function renderOverviewRecentOrders() {
 }
 
 /**
- * 4. Products Management (CRUD)
+ * 4. Categories Management (Dynamic Categories)
  */
+const DEFAULT_CATEGORIES = [
+  { id: "kitchen", name: "حلول المطبخ", icon: "🍳", isDefault: true },
+  { id: "cleaning", name: "أدوات التنظيف", icon: "🧹", isDefault: true },
+  { id: "home", name: "حلول منزلية", icon: "🏠", isDefault: true },
+  { id: "deals", name: "عروض التوفير", icon: "🔥", isDefault: true }
+];
+
+function initCategoriesListener() {
+  if (typeof db === "undefined" || !db) {
+    AdminState.categories = [...DEFAULT_CATEGORIES];
+    renderAdminCategoryFilters();
+    renderCategorySelectOptions();
+    return;
+  }
+
+  db.ref("categories").on("value", (snap) => {
+    const data = snap.val();
+    if (data) {
+      const customList = Object.keys(data).map(k => ({
+        ...data[k],
+        id: data[k].id || k
+      }));
+      const merged = [...DEFAULT_CATEGORIES];
+      customList.forEach(custom => {
+        if (!merged.some(c => c.id === custom.id)) {
+          merged.push(custom);
+        }
+      });
+      AdminState.categories = merged;
+    } else {
+      AdminState.categories = [...DEFAULT_CATEGORIES];
+    }
+    renderAdminCategoryFilters();
+    renderCategorySelectOptions();
+    renderCategoriesManageList();
+  });
+}
+
+function renderAdminCategoryFilters() {
+  const container = document.getElementById("admin-category-filter-bar");
+  if (!container) return;
+
+  const current = AdminState.currentProductCategoryFilter || "all";
+  let html = `
+    <button class="cat-btn admin-prod-cat-btn ${current === 'all' ? 'active' : ''}" data-cat="all" onclick="filterAdminProducts('all')">الكل (جميع الأقسام)</button>
+  `;
+
+  (AdminState.categories || DEFAULT_CATEGORIES).forEach(c => {
+    const isDeals = c.id === "deals";
+    html += `
+      <button class="cat-btn admin-prod-cat-btn ${current === c.id ? 'active' : ''}" data-cat="${c.id}" onclick="filterAdminProducts('${c.id}')" ${isDeals ? 'style="color:#ef4444; font-weight:800;"' : ''}>
+        ${c.icon || '🏷️'} ${c.name}
+      </button>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderCategorySelectOptions() {
+  const select = document.getElementById("prod-category");
+  if (!select) return;
+
+  const currentVal = select.value;
+  select.innerHTML = (AdminState.categories || DEFAULT_CATEGORIES).map(c => `
+    <option value="${c.id}">${c.icon || '🏷️'} ${c.name}</option>
+  `).join("");
+
+  if (currentVal && AdminState.categories.some(c => c.id === currentVal)) {
+    select.value = currentVal;
+  }
+}
+
+function renderCategoriesManageList() {
+  const list = document.getElementById("categories-manage-list");
+  if (!list) return;
+
+  list.innerHTML = (AdminState.categories || DEFAULT_CATEGORIES).map(c => `
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid #e2e8f0; padding:0.6rem 0.85rem; border-radius:8px;">
+      <div style="display:flex; align-items:center; gap:0.5rem; font-weight:700;">
+        <span>${c.icon || '🏷️'}</span>
+        <span>${c.name}</span>
+        ${c.isDefault ? `<span style="font-size:0.7rem; background:#f1f5f9; color:#64748b; padding:2px 6px; border-radius:4px;">افتراضي</span>` : `<span style="font-size:0.7rem; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:4px;">مخصص</span>`}
+      </div>
+      <div>
+        ${!c.isDefault ? `
+          <button type="button" onclick="deleteCustomCategory('${c.id}')" style="background:#fee2e2; color:#ef4444; border:none; border-radius:6px; padding:0.3rem 0.6rem; cursor:pointer; font-size:0.8rem; font-weight:700;">
+            🗑️ حذف
+          </button>
+        ` : `<span style="font-size:0.78rem; color:#94a3b8;">أساسي</span>`}
+      </div>
+    </div>
+  `).join("");
+}
+
+function openCategoryModal() {
+  renderCategoriesManageList();
+  document.getElementById("category-modal")?.classList.add("active");
+}
+
+function closeCategoryModal() {
+  document.getElementById("category-modal")?.classList.remove("active");
+}
+
+async function handleAddNewCategory(e) {
+  e.preventDefault();
+  const name = document.getElementById("new-cat-name").value.trim();
+  const icon = document.getElementById("new-cat-icon").value.trim() || "🏷️";
+
+  if (!name) return;
+
+  const id = "cat_" + Date.now();
+  const catData = {
+    id: id,
+    name: name,
+    icon: icon,
+    isDefault: false,
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref(`categories/${id}`).set(catData);
+      showAdminToast(`✓ تم إضافة قسم "${name}" بنجاح! 🏷️`);
+    } else {
+      AdminState.categories.push(catData);
+      renderAdminCategoryFilters();
+      renderCategorySelectOptions();
+      renderCategoriesManageList();
+    }
+    document.getElementById("new-cat-name").value = "";
+  } catch (err) {
+    alert("خطأ أثناء حفظ القسم: " + err.message);
+  }
+}
+
+async function deleteCustomCategory(catId) {
+  if (!confirm("هل أنت متأكد من حذف هذا القسم؟ (المنتجات التابعة له ستظل موجودة بالمتجر)")) return;
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref(`categories/${catId}`).remove();
+      showAdminToast("تم حذف القسم 🗑️");
+    }
+  } catch (err) {
+    alert("خطأ أثناء الحذف: " + err.message);
+  }
+}
+
 function filterAdminProducts(cat) {
   AdminState.currentProductCategoryFilter = cat;
   document.querySelectorAll(".admin-prod-cat-btn").forEach(btn => {
@@ -248,6 +401,7 @@ function renderAdminProducts() {
         <strong>${p.name}</strong>
         ${p.isDemo ? `<span style="font-size:0.7rem; background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; margin-right:4px;">تجريبي</span>` : ""}
         ${p.badge ? `<span style="font-size:0.7rem; background:#eff6ff; color:#2563eb; padding:2px 6px; border-radius:4px; margin-right:4px;">${p.badge}</span>` : ""}
+        ${p.offers && p.offers.length > 0 ? `<span style="font-size:0.7rem; background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; margin-right:4px;">${p.offers.length} عروض 🎁</span>` : ""}
         <div style="font-size:0.8rem; color:var(--text-muted);">${p.subtitle || ""}</div>
       </td>
       <td>
@@ -266,13 +420,136 @@ function renderAdminProducts() {
 }
 
 function getCategoryArabicName(cat) {
+  const found = (AdminState.categories || DEFAULT_CATEGORIES).find(c => c.id === cat);
+  if (found) return found.name;
   switch (cat) {
     case "kitchen": return "حلول المطبخ";
     case "cleaning": return "أدوات التنظيف";
     case "home": return "حلول منزلية";
     case "deals": return "عروض التوفير";
-    default: return "أدوات ذكية";
+    default: return cat || "أدوات ذكية";
   }
+}
+
+/**
+ * 4b. Product Offers & Bundles Management
+ */
+function addOfferRow(offer = null) {
+  const container = document.getElementById("prod-offers-container");
+  if (!container) return;
+
+  const rowId = `offer_row_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+  const count = container.children.length + 1;
+  const qty = offer ? (offer.qty || count) : count;
+  const title = offer ? (offer.title || "") : "";
+  const totalPrice = offer ? (offer.totalPrice || "") : "";
+  const note = offer ? (offer.note || "") : "";
+
+  const div = document.createElement("div");
+  div.id = rowId;
+  div.className = "offer-item-row";
+  div.style.cssText = "background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; padding:0.75rem 0.85rem; display:grid; grid-template-columns: 65px 1.5fr 1fr 1.2fr auto; gap:0.6rem; align-items:center;";
+
+  div.innerHTML = `
+    <div>
+      <label style="font-size:0.75rem; color:#64748b; display:block; margin-bottom:2px;">الكمية</label>
+      <input type="number" class="offer-qty-input" value="${qty}" min="1" style="width:100%; padding:0.4rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.9rem; text-align:center;" required>
+    </div>
+    <div>
+      <label style="font-size:0.75rem; color:#64748b; display:block; margin-bottom:2px;">عنوان العرض للعميل</label>
+      <input type="text" class="offer-title-input" value="${title}" placeholder="مثال: اشتري 2 مكنسة بـ 878ج فقط" style="width:100%; padding:0.4rem 0.6rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.88rem;" required>
+    </div>
+    <div>
+      <label style="font-size:0.75rem; color:#64748b; display:block; margin-bottom:2px;">السعر الإجمالي (ج.م)</label>
+      <input type="number" class="offer-price-input" value="${totalPrice}" placeholder="878" style="width:100%; padding:0.4rem 0.6rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.88rem;" required>
+    </div>
+    <div>
+      <label style="font-size:0.75rem; color:#64748b; display:block; margin-bottom:2px;">ملاحظة التوفير / السعر الأصلي</label>
+      <input type="text" class="offer-note-input" value="${note}" placeholder="سعر القطعة: 439 ج.م | السعر الأصلي: 650 ج.م" style="width:100%; padding:0.4rem 0.6rem; border:1px solid #cbd5e1; border-radius:6px; font-size:0.82rem;">
+    </div>
+    <div style="padding-top:15px;">
+      <button type="button" onclick="document.getElementById('${rowId}').remove()" style="background:#fee2e2; color:#ef4444; border:none; border-radius:6px; padding:0.45rem 0.65rem; cursor:pointer; font-size:0.9rem;" title="حذف هذا العرض">
+        🗑️
+      </button>
+    </div>
+  `;
+
+  container.appendChild(div);
+}
+
+function generateAutoOffers() {
+  const price = Number(document.getElementById("prod-price").value);
+  const origPrice = Number(document.getElementById("prod-original-price").value) || Math.round(price * 1.25);
+  const name = document.getElementById("prod-name").value.trim() || "المنتج";
+  const shortName = name.split(" ")[0] || "المنتج";
+
+  if (!price || price <= 0) {
+    alert("يرجى إدخال السعر الحالي للمنتج أولاً لتوليد الباقات تلقائياً!");
+    return;
+  }
+
+  const container = document.getElementById("prod-offers-container");
+  if (!container) return;
+  container.innerHTML = "";
+
+  // 1 item
+  addOfferRow({
+    qty: 1,
+    title: `اشتري ${shortName} بسعر ${price}ج فقط`,
+    totalPrice: price,
+    note: origPrice > price ? `سعر القطعة: ${price} ج.م | السعر الأصلي: ${origPrice} ج.م` : ""
+  });
+
+  // 2 items: 12% discount
+  const p2 = Math.round(price * 2 * 0.88);
+  const u2 = Math.round(p2 / 2);
+  addOfferRow({
+    qty: 2,
+    title: `اشتري 2 ${shortName} بـ ${p2}ج فقط`,
+    totalPrice: p2,
+    note: `سعر القطعة: ${u2} ج.م | السعر الأصلي: ${origPrice * 2} ج.م`
+  });
+
+  // 3 items: 18% discount
+  const p3 = Math.round(price * 3 * 0.82);
+  const u3 = Math.round(p3 / 3);
+  addOfferRow({
+    qty: 3,
+    title: `اشتري 3 ${shortName} بـ ${p3}ج فقط`,
+    totalPrice: p3,
+    note: `سعر القطعة: ${u3} ج.م | السعر الأصلي: ${origPrice * 3} ج.م`
+  });
+
+  showAdminToast("تم توليد 3 باقات ذكية بنجاح! ⚡");
+}
+
+function collectProductOffers() {
+  const container = document.getElementById("prod-offers-container");
+  if (!container) return [];
+
+  const rows = container.querySelectorAll(".offer-item-row");
+  const offers = [];
+
+  rows.forEach((row, idx) => {
+    const qty = Number(row.querySelector(".offer-qty-input")?.value) || (idx + 1);
+    const title = row.querySelector(".offer-title-input")?.value.trim() || "";
+    const totalPrice = Number(row.querySelector(".offer-price-input")?.value) || 0;
+    const note = row.querySelector(".offer-note-input")?.value.trim() || "";
+    const unitPrice = qty > 0 ? Math.round(totalPrice / qty) : totalPrice;
+
+    if (title && totalPrice > 0) {
+      offers.push({
+        index: idx,
+        qty: qty,
+        title: title,
+        totalPrice: totalPrice,
+        unitPrice: unitPrice,
+        note: note
+      });
+    }
+  });
+
+  return offers;
 }
 
 function openAddProductModal() {
@@ -280,7 +557,7 @@ function openAddProductModal() {
   document.getElementById("product-modal-title").textContent = "إضافة منتج جديد لحِلها";
   document.getElementById("prod-name").value = "";
   document.getElementById("prod-subtitle").value = "";
-  document.getElementById("prod-category").value = "kitchen";
+  document.getElementById("prod-category").value = AdminState.categories?.[0]?.id || "kitchen";
   document.getElementById("prod-price").value = "";
   document.getElementById("prod-original-price").value = "";
   document.getElementById("prod-badge").value = "";
@@ -288,6 +565,10 @@ function openAddProductModal() {
   document.getElementById("prod-desc").value = "";
   document.getElementById("prod-features").value = "";
   document.getElementById("prod-image-url").value = "";
+
+  // Reset offers container
+  const offersContainer = document.getElementById("prod-offers-container");
+  if (offersContainer) offersContainer.innerHTML = "";
   
   const preview = document.getElementById("prod-upload-preview");
   if (preview) {
@@ -315,6 +596,15 @@ function openEditProductModal(productId) {
   document.getElementById("prod-features").value = (prod.features || []).join("\n");
   document.getElementById("prod-image-url").value = prod.image || "";
 
+  // Populate offers
+  const offersContainer = document.getElementById("prod-offers-container");
+  if (offersContainer) {
+    offersContainer.innerHTML = "";
+    if (prod.offers && prod.offers.length > 0) {
+      prod.offers.forEach(off => addOfferRow(off));
+    }
+  }
+
   const preview = document.getElementById("prod-upload-preview");
   if (preview && prod.image) {
     preview.src = prod.image;
@@ -341,6 +631,7 @@ async function handleSaveProduct(e) {
   const description = document.getElementById("prod-desc").value.trim();
   const featuresText = document.getElementById("prod-features").value.trim();
   const imageUrl = document.getElementById("prod-image-url").value.trim();
+  const offers = collectProductOffers();
 
   if (!name || isNaN(price)) {
     alert("يرجى إدخال اسم المنتج والسعر على الأقل!");
@@ -366,6 +657,7 @@ async function handleSaveProduct(e) {
     description: description,
     features: features,
     image: imageUrl || "assets/logo.jpg",
+    offers: offers,
     isDemo: false,
     updatedAt: new Date().toISOString()
   };
@@ -373,7 +665,7 @@ async function handleSaveProduct(e) {
   try {
     if (typeof db !== "undefined" && db) {
       await db.ref(`products/${id}`).set(productData);
-      showAdminToast("تم حفظ المنتج بنجاح في قاعدة البيانات ✅");
+      showAdminToast("تم حفظ المنتج والعروض بنجاح في قاعدة البيانات ✅");
     }
     closeProductModal();
   } catch (err) {
@@ -1019,3 +1311,98 @@ function showAdminToast(msg) {
     toast.style.display = "none";
   }, 3500);
 }
+
+/**
+ * 13. Customer Messages & Support Inquiries Management
+ */
+function initMessagesListener() {
+  if (typeof db === "undefined" || !db) return;
+  db.ref("messages").on("value", (snap) => {
+    const data = snap.val();
+    if (data) {
+      AdminState.messages = Object.keys(data).map(key => ({
+        ...data[key],
+        id: key
+      })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    } else {
+      AdminState.messages = [];
+    }
+    renderAdminMessages();
+  });
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function renderAdminMessages() {
+  const tbody = document.getElementById("admin-messages-tbody");
+  const countBadge = document.getElementById("messages-count-badge");
+  if (!tbody) return;
+
+  const msgs = AdminState.messages || [];
+  if (countBadge) {
+    countBadge.textContent = `${msgs.length} رسالة واردة`;
+  }
+
+  if (msgs.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding: 2.5rem; color: var(--text-muted);">
+          📭 لا توجد رسائل واردة حالياً. ستظهر هنا أي رسائل أو تذاكر يرسلها العملاء من صفحتي اتصل بنا والدعم الفني.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = msgs.map(m => {
+    const dateStr = m.timestamp ? new Date(m.timestamp).toLocaleString("ar-EG") : (m.createdAt ? new Date(m.createdAt).toLocaleString("ar-EG") : "غير محدد");
+    const name = escapeHtml(m.name || "مجهول");
+    const phone = escapeHtml(m.phone || "—");
+    const address = escapeHtml(m.address || m.governorate || "—");
+    const subject = escapeHtml(m.subject || "استفسار");
+    const message = escapeHtml(m.message || m.details || "");
+    const orderInfo = m.orderId ? `<div style="font-size:0.75rem; color:#0284c7; margin-top:2px;">طلب: #${escapeHtml(m.orderId)}</div>` : "";
+
+    return `
+      <tr>
+        <td style="font-size:0.8rem; color:var(--text-muted); white-space:nowrap;">${dateStr}</td>
+        <td>
+          <strong>${name}</strong>
+          ${orderInfo}
+        </td>
+        <td style="direction:ltr; text-align:right; font-weight:700;">${phone}</td>
+        <td>${address}</td>
+        <td><span class="badge" style="background:#e0f2fe; color:#0369a1; font-size:0.8rem; padding:4px 8px; border-radius:4px;">${subject}</span></td>
+        <td style="max-width:320px; white-space:pre-wrap; font-size:0.85rem; line-height:1.5;">${message}</td>
+        <td>
+          <button class="btn-admin-action" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; padding:5px 10px; border-radius:6px; cursor:pointer;" onclick="deleteAdminMessage('${m.id}')" title="حذف الرسالة">
+            🗑️ حذف
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function deleteAdminMessage(msgId) {
+  if (!confirm("هل أنت متأكد من رغبتك في حذف هذه الرسالة من قاعدة البيانات؟")) return;
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref(`messages/${msgId}`).remove();
+      showAdminToast("تم حذف الرسالة بنجاح 🗑️");
+    }
+  } catch (err) {
+    console.error("Error deleting message:", err);
+    alert("تعذر حذف الرسالة");
+  }
+}
+
+window.deleteAdminMessage = deleteAdminMessage;

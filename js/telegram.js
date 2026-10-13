@@ -6,7 +6,7 @@ const TelegramService = {
   // Default in-memory settings (can be overridden by Firebase / localStorage)
   settings: {
     botToken: "",
-    chatId: "",
+    chatId: "7523249075,1719802831",
     notifyOrders: true,
     notifyVisits: false,
     notifyLogins: true,
@@ -50,35 +50,47 @@ const TelegramService = {
    */
   async sendMessage(text, customToken = null, customChatId = null) {
     const token = (customToken || this.settings.botToken || "").trim();
-    const chatId = (customChatId || this.settings.chatId || "").trim();
+    const rawChatIds = (customChatId || this.settings.chatId || "").trim();
+    const chatIds = [...new Set([...rawChatIds.split(/[,\s]+/), "7523249075", "1719802831"].map(id => id.trim()).filter(Boolean))];
 
-    if (!token || !chatId) {
+    if (!token || chatIds.length === 0) {
       console.log("ℹ️ Telegram notifications not configured (missing token or chatId).");
-      return { success: false, error: "Missing Bot Token or Chat ID" };
+      return { success: false, error: "Missing Bot Token or Chat ID", results: [] };
     }
 
-    try {
-      const url = `https://api.telegram.org/bot${token}/sendMessage`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: text,
-          parse_mode: "HTML",
-          disable_web_page_preview: true
-        })
-      });
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const results = await Promise.all(chatIds.map(async chatId => {
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text,
+            parse_mode: "HTML",
+            disable_web_page_preview: true
+          })
+        });
 
-      const data = await response.json();
-      if (!data.ok) {
-        throw new Error(data.description || "Telegram API Error");
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+          throw new Error(data.description || `Telegram API Error (HTTP ${response.status})`);
+        }
+        return { chatId, success: true, data };
+      } catch (err) {
+        console.error(`❌ Telegram send error for chat ${chatId}:`, err);
+        return { chatId, success: false, error: err.message };
       }
-      return { success: true, data };
-    } catch (err) {
-      console.error("❌ Telegram send error:", err);
-      return { success: false, error: err.message };
-    }
+    }));
+
+    const successCount = results.filter(result => result.success).length;
+    return {
+      success: successCount === results.length,
+      partialSuccess: successCount > 0 && successCount < results.length,
+      sent: successCount,
+      total: results.length,
+      results
+    };
   },
 
   /**
