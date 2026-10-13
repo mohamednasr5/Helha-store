@@ -1674,19 +1674,24 @@ img {
   background: #ffffff;
   border: 2px solid var(--primary);
   border-radius: var(--radius-md);
-  box-shadow: 0 16px 36px rgba(23, 83, 73, 0.22);
+  box-shadow: 0 16px 36px rgba(23, 83, 73, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 0.9rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  z-index: 999999;
+  z-index: 10000000 !important;
   animation: pwaSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes pwaSlideUp {
   from { transform: translateY(80px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pwaSlideDown {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(80px); opacity: 0; }
 }
 
 .pwa-banner-content {
@@ -1772,18 +1777,30 @@ img {
   color: var(--dark);
 }
 
+@media (max-width: 768px) {
+  .pwa-banner-card {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 12px !important;
+    left: 12px !important;
+    max-width: 480px !important;
+    z-index: 10000000 !important;
+  }
+}
+
 @media (max-width: 540px) {
   .pwa-banner-card {
     flex-direction: column;
     align-items: stretch;
-    bottom: 14px;
-    right: 14px;
-    left: 14px;
-    padding: 0.85rem;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 10px !important;
+    left: 10px !important;
+    padding: 0.85rem !important;
+    z-index: 10000000 !important;
   }
   .pwa-banner-actions {
     justify-content: space-between;
-    margin-top: 0.4rem;
+    margin-top: 0.5rem;
+    width: 100%;
   }
   .pwa-btn-install {
     flex: 1;
