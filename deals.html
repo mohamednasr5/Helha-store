@@ -245,11 +245,17 @@
           <!-- Mandatory Return Policy Agreement -->
           <div class="checkout-agreement-wrap">
             <label class="checkout-agreement-label">
-              <input type="checkbox" id="order-policy-agree" class="checkout-agreement-checkbox" required>
+              <input type="checkbox" id="order-policy-agree" class="checkout-agreement-checkbox" required
+                     oninvalid="this.setCustomValidity('لا بد من مراجعة والتأكيد على سياسة الاستبدال والاسترجاع')"
+                     onchange="this.setCustomValidity('')"
+                     oninput="this.setCustomValidity('')">
               <span>
-                بشراء هذا المنتج فأنت موافق على <a href="return-policy.html" target="_blank" class="checkout-agreement-link">سياسة الاستبدال والاسترجاع</a> <span class="req" style="color:#ef4444;">*</span>
+                بشراء هذا المنتج فأنت موافق على <a href="return-policy.html" target="_blank" class="checkout-agreement-link">📄 سياسة الاستبدال والاسترجاع</a> <span class="req" style="color:#ef4444;">*</span>
               </span>
             </label>
+            <div id="policy-agree-error" class="policy-error-msg">
+              ⚠️ لا بد من مراجعة والتأكيد على سياسة الاستبدال والاسترجاع
+            </div>
           </div>
 
           <button type="submit" id="btn-submit-order" class="btn-buy-now">

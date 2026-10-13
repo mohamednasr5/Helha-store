@@ -1692,54 +1692,80 @@ img {
    ========================================================================== */
 .checkout-agreement-wrap {
   margin: 1.15rem 0 1rem 0;
-  padding: 0.85rem 1rem;
-  background: #fffbeb;
-  border: 1.5px solid #fde68a;
-  border-radius: var(--radius-sm, 8px);
-  transition: var(--transition, all 0.2s ease);
+  padding: 0.95rem 1.1rem;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: var(--radius-sm, 10px);
+  transition: var(--transition, all 0.25s ease);
 }
 
 .checkout-agreement-wrap:hover {
-  border-color: #f59e0b;
+  border-color: #0284c7;
+  background: #f0f9ff;
 }
 
 .checkout-agreement-wrap.has-error {
-  background: #fef2f2;
-  border-color: #f87171;
+  background: #fef2f2 !important;
+  border-color: #ef4444 !important;
   animation: shakeAgreement 0.4s ease;
 }
 
 .checkout-agreement-label {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
   cursor: pointer;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--dark, #1e293b);
-  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: #1e293b;
+  font-weight: 700;
   user-select: none;
 }
 
 .checkout-agreement-checkbox {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
-  margin-top: 2px;
-  accent-color: var(--primary, #175349);
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  accent-color: #0284c7;
   cursor: pointer;
+  border-radius: 4px;
 }
 
 .checkout-agreement-link {
-  color: var(--primary, #175349);
-  text-decoration: underline;
-  font-weight: 800;
-  transition: color 0.2s ease;
+  color: #0284c7 !important;
+  background: #e0f2fe;
+  border: 1.5px solid #7dd3fc;
+  padding: 3px 10px;
+  border-radius: 6px;
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+  font-weight: 900 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.15);
 }
 
 .checkout-agreement-link:hover {
-  color: var(--primary-hover, #0f3d35);
+  background: #bae6fd;
+  color: #0369a1 !important;
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25);
+}
+
+.policy-error-msg {
+  display: none;
+  color: #dc2626;
+  font-size: 0.88rem;
+  font-weight: 800;
+  margin-top: 0.5rem;
+  padding-right: 0.25rem;
+  animation: fadeIn 0.25s ease;
 }
 
 @keyframes shakeAgreement {

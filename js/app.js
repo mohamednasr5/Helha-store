@@ -460,12 +460,21 @@ async function handleCheckoutSubmit(e) {
 
   const policyAgree = document.getElementById("order-policy-agree");
   const agreementWrap = document.querySelector(".checkout-agreement-wrap");
+  const policyError = document.getElementById("policy-agree-error");
+
   if (policyAgree && !policyAgree.checked) {
     if (agreementWrap) {
       agreementWrap.classList.add("has-error");
-      setTimeout(() => agreementWrap.classList.remove("has-error"), 2500);
+      setTimeout(() => agreementWrap.classList.remove("has-error"), 3000);
     }
-    showToast("يرجى الموافقة على سياسة الاستبدال والاسترجاع قبل تأكيد الشراء!", "error");
+    if (policyError) {
+      policyError.style.display = "block";
+    }
+    policyAgree.setCustomValidity("لا بد من مراجعة والتأكيد على سياسة الاستبدال والاسترجاع");
+    if (typeof policyAgree.reportValidity === "function") {
+      policyAgree.reportValidity();
+    }
+    showToast("لا بد من مراجعة والتأكيد على سياسة الاستبدال والاسترجاع", "error");
     policyAgree.focus();
     return;
   }
