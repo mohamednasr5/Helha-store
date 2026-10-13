@@ -215,6 +215,7 @@
           <p style="font-size:0.9rem; line-height:1.7; color:var(--dark-soft);">
             <strong>طريقة الدفع:</strong> <span id="res-payment-method">الدفع عند الاستلام</span><br>
             <strong>المجموع الفرعي:</strong> <span id="res-subtotal">0</span> ج.م<br>
+            <span id="res-coupon-line" style="display:none; color:#16a34a;"><strong>خصم الكوبون (<span id="res-coupon-code"></span>):</strong> -<span id="res-discount">0</span> ج.م<br></span>
             <strong>مصاريف الشحن:</strong> <span id="res-shipping">0</span> ج.م<br>
             <strong style="color:var(--primary); font-size:1.05rem;">الإجمالي الكلي:</strong> <span id="res-total" style="font-size:1.15rem; font-weight:800; color:var(--primary);">0</span> ج.م
           </p>
@@ -419,6 +420,19 @@
       document.getElementById("res-subtotal").textContent = order.subtotal || order.totalAmount || 0;
       document.getElementById("res-shipping").textContent = order.shippingFee || 0;
       document.getElementById("res-total").textContent = order.totalAmount || 0;
+
+      const couponLine = document.getElementById("res-coupon-line");
+      if (couponLine) {
+        if (order.couponCode || (order.discountAmount && Number(order.discountAmount) > 0)) {
+          couponLine.style.display = "inline";
+          const codeEl = document.getElementById("res-coupon-code");
+          const discEl = document.getElementById("res-discount");
+          if (codeEl) codeEl.textContent = order.couponCode || "خصم";
+          if (discEl) discEl.textContent = order.discountAmount || 0;
+        } else {
+          couponLine.style.display = "none";
+        }
+      }
 
       // Status Badge & Stepper
       const statusBadge = document.getElementById("res-order-status-badge");

@@ -8,8 +8,16 @@ const AppState = {
   cart: [],
   currentCategory: "all",
   searchQuery: "",
-  shippingFee: 35,
+  shippingFee: 50,
   freeShippingThreshold: 500,
+  shippingSettings: {
+    freeShippingEnabled: true,
+    freeShippingThreshold: 500,
+    mode: "flat",
+    flatRate: 50,
+    govRates: {}
+  },
+  appliedCoupon: null,
   activeProductModal: null,
 };
 
@@ -22,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCartUI();
   initBannersListener();
   initStoreCategories();
+  initStoreShippingListener();
 
   if (window.location.hash === "#cart") {
     setTimeout(() => {
@@ -407,20 +416,26 @@ function closeQuickView() {
 /**
  * 5. Checkout Flow & Order Placement
  */
-function openCheckoutModal() {
-  if (AppState.cart.length === 0) {
-    showToast("سلتك فارغة، أضف منتجات أولاً! 🛒", "error");
-    return;
+function calculateCurrentShipping(subtotal, selectedGov) {
+  const s = AppState.shippingSettings || {};
+  if (s.freeShippingEnabled !== false && subtotal >= (Number(s.freeShippingThreshold) || 500) && subtotal > 0) {
+    return 0;
   }
-  closeCartDrawer();
+  if (s.mode === "per_gov" && selectedGov && s.govRates && s.govRates[selectedGov] !== undefined) {
+    return Number(s.govRates[selectedGov]);
+  }
+  return Number(s.flatRate || AppState.shippingFee || 50);
+}
 
-  const checkoutOverlay = document.getElementById("checkout-overlay");
+function updateCheckoutReview() {
   const reviewBox = document.getElementById("checkout-order-review");
+  const citySelect = document.getElementById("order-customer-city");
+  const selectedGov = citySelect ? citySelect.value : "";
 
   const subtotal = getCartSubtotal();
-  const isFree = subtotal >= AppState.freeShippingThreshold;
-  const shipFee = isFree ? 0 : AppState.shippingFee;
-  const total = subtotal + shipFee;
+  const shippingFee = calculateCurrentShipping(subtotal, selectedGov);
+  const discountAmount = AppState.appliedCoupon ? AppState.appliedCoupon.discountAmount : 0;
+  const grandTotal = Math.max(0, subtotal - discountAmount + shippingFee);
 
   if (reviewBox) {
     reviewBox.innerHTML = `
@@ -433,16 +448,143 @@ function openCheckoutModal() {
           </div>
         `).join("")}
       </div>
-      <div style="border-top:1px dashed var(--border); padding-top:0.5rem; display:flex; justify-content:space-between; font-weight:700;">
-        <span>الشحن:</span>
-        <span>${isFree ? "مجاني 🎉" : `${shipFee} ج.م`}</span>
+      <div style="border-top:1px dashed var(--border); padding-top:0.5rem; display:flex; justify-content:space-between; font-size:0.9rem;">
+        <span>المجموع الفرعي:</span>
+        <span>${subtotal} ج.م</span>
       </div>
-      <div style="display:flex; justify-content:space-between; font-size:1.15rem; font-weight:800; color:var(--primary); margin-top:0.35rem;">
+      ${AppState.appliedCoupon ? `
+        <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:#16a34a; font-weight:700;">
+          <span>خصم الكوبون (${AppState.appliedCoupon.code}):</span>
+          <span>-${discountAmount} ج.م</span>
+        </div>
+      ` : ""}
+      <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:700;">
+        <span>الشحن ${selectedGov ? `(${selectedGov})` : ""}:</span>
+        <span style="${shippingFee === 0 ? 'color:#16a34a;' : ''}">${shippingFee === 0 ? "شحن مجاني 🎉" : `${shippingFee} ج.م`}</span>
+      </div>
+      <div style="border-top:1px dashed var(--border); padding-top:0.5rem; display:flex; justify-content:space-between; font-size:1.15rem; font-weight:800; color:var(--primary); margin-top:0.35rem;">
         <span>الإجمالي النهائي:</span>
-        <span>${total} ج.م</span>
+        <span>${grandTotal} ج.م</span>
       </div>
     `;
   }
+}
+
+async function applyCheckoutCoupon(inputCode) {
+  const code = (inputCode || (document.getElementById("checkout-coupon-code") ? document.getElementById("checkout-coupon-code").value : "")).trim().toUpperCase();
+  const msgEl = document.getElementById("checkout-coupon-msg");
+
+  if (!code) {
+    if (msgEl) {
+      msgEl.textContent = "يرجى كتابة كود الخصم أولاً!";
+      msgEl.style.color = "#ef4444";
+    }
+    return;
+  }
+
+  if (typeof db === "undefined" || !db) {
+    if (msgEl) {
+      msgEl.textContent = "خدمة الكوبونات غير متصلة حالياً";
+      msgEl.style.color = "#ef4444";
+    }
+    return;
+  }
+
+  try {
+    const snap = await db.ref(`coupons/${code}`).once("value");
+    const coupon = snap.val();
+
+    if (!coupon) {
+      AppState.appliedCoupon = null;
+      if (msgEl) {
+        msgEl.textContent = "❌ كود الخصم غير صحيح أو غير موجود";
+        msgEl.style.color = "#ef4444";
+      }
+      updateCheckoutReview();
+      return;
+    }
+
+    if (coupon.status === "disabled") {
+      AppState.appliedCoupon = null;
+      if (msgEl) {
+        msgEl.textContent = "⚠️ هذا الكود معطّل حالياً";
+        msgEl.style.color = "#ef4444";
+      }
+      updateCheckoutReview();
+      return;
+    }
+
+    const now = Date.now();
+    if (coupon.expiryDate && new Date(coupon.expiryDate).getTime() < now) {
+      AppState.appliedCoupon = null;
+      if (msgEl) {
+        msgEl.textContent = "⌛ عذراً، انتهت صلاحية كود الخصم هذا";
+        msgEl.style.color = "#ef4444";
+      }
+      updateCheckoutReview();
+      return;
+    }
+
+    if (coupon.usageLimit > 0 && (coupon.usedCount || 0) >= coupon.usageLimit) {
+      AppState.appliedCoupon = null;
+      if (msgEl) {
+        msgEl.textContent = "⚠️ عذراً، تم الوصول للحد الأقصى لاستخدام هذا الكود";
+        msgEl.style.color = "#ef4444";
+      }
+      updateCheckoutReview();
+      return;
+    }
+
+    const subtotal = getCartSubtotal();
+    if (coupon.minOrder > 0 && subtotal < coupon.minOrder) {
+      AppState.appliedCoupon = null;
+      if (msgEl) {
+        msgEl.textContent = `⚠️ يلزم أن يكون إجمالي مشترياتك ${coupon.minOrder} ج.م على الأقل لتفعيل هذا الكود`;
+        msgEl.style.color = "#ef4444";
+      }
+      updateCheckoutReview();
+      return;
+    }
+
+    // Valid coupon!
+    let discountAmount = 0;
+    if (coupon.type === "fixed") {
+      discountAmount = Math.min(subtotal, Number(coupon.value) || 0);
+    } else {
+      discountAmount = Math.round(subtotal * ((Number(coupon.value) || 0) / 100));
+    }
+
+    AppState.appliedCoupon = {
+      code: coupon.code || code,
+      type: coupon.type,
+      value: coupon.value,
+      discountAmount: discountAmount
+    };
+
+    if (msgEl) {
+      msgEl.textContent = `🎉 تم تفعيل الكود بنجاح! وفرت ${discountAmount} ج.م`;
+      msgEl.style.color = "#16a34a";
+    }
+
+    updateCheckoutReview();
+  } catch (err) {
+    console.error("Error applying coupon:", err);
+    if (msgEl) {
+      msgEl.textContent = "حدث خطأ أثناء فحص الكود";
+      msgEl.style.color = "#ef4444";
+    }
+  }
+}
+
+function openCheckoutModal() {
+  if (AppState.cart.length === 0) {
+    showToast("سلتك فارغة، أضف منتجات أولاً! 🛒", "error");
+    return;
+  }
+  closeCartDrawer();
+
+  const checkoutOverlay = document.getElementById("checkout-overlay");
+  updateCheckoutReview();
 
   if (checkoutOverlay) checkoutOverlay.classList.add("active");
 }
@@ -459,10 +601,10 @@ async function handleCheckoutSubmit(e) {
   const phone = document.getElementById("order-customer-phone").value.trim();
   const city = document.getElementById("order-customer-city").value.trim();
   const address = document.getElementById("order-customer-address").value.trim();
-  const notes = document.getElementById("order-customer-notes").value.trim();
+  const notes = document.getElementById("order-customer-notes") ? document.getElementById("order-customer-notes").value.trim() : "";
 
   if (!name || !phone || !address || !city) {
-    showToast("يرجى ملء جميع الحقول المطلوبة", "error");
+    showToast("يرجى ملء جميع الحقول المطلوبة واختيار المحافظة", "error");
     return;
   }
 
@@ -494,9 +636,10 @@ async function handleCheckoutSubmit(e) {
   }
 
   const subtotal = getCartSubtotal();
-  const isFree = subtotal >= AppState.freeShippingThreshold;
-  const shippingFee = isFree ? 0 : AppState.shippingFee;
-  const totalAmount = subtotal + shippingFee;
+  const shippingFee = calculateCurrentShipping(subtotal, city);
+  const discountAmount = AppState.appliedCoupon ? AppState.appliedCoupon.discountAmount : 0;
+  const couponCode = AppState.appliedCoupon ? AppState.appliedCoupon.code : null;
+  const totalAmount = Math.max(0, subtotal - discountAmount + shippingFee);
 
   const orderId = "HLH-" + Math.floor(100000 + Math.random() * 900000);
 
@@ -510,6 +653,8 @@ async function handleCheckoutSubmit(e) {
     notes: notes,
     items: AppState.cart,
     subtotal: subtotal,
+    couponCode: couponCode,
+    discountAmount: discountAmount,
     shippingFee: shippingFee,
     totalAmount: totalAmount,
     status: "new",
@@ -526,13 +671,29 @@ async function handleCheckoutSubmit(e) {
       // Update analytics in Firebase
       db.ref("analytics/totalOrders").transaction((current) => (current || 0) + 1);
       db.ref("analytics/totalRevenue").transaction((current) => (current || 0) + totalAmount);
+
+      // Record coupon usage in Firebase if applied
+      if (couponCode) {
+        const usageObj = {
+          orderId: orderId,
+          customerName: name,
+          customerPhone: phone,
+          discountAmount: discountAmount,
+          totalAmount: totalAmount,
+          usedAt: new Date().toLocaleString("ar-EG")
+        };
+        db.ref(`coupons/${couponCode}/usages`).push(usageObj);
+        db.ref(`coupons/${couponCode}/usedCount`).transaction(c => (c || 0) + 1);
+        db.ref(`coupons/${couponCode}/totalDiscountGiven`).transaction(d => (d || 0) + discountAmount);
+      }
     }
 
     // 2. Send instant Telegram Notification
     await TelegramService.notifyNewOrder(orderData);
 
-    // 3. Clear Cart
+    // 3. Clear Cart & Reset Coupon
     AppState.cart = [];
+    AppState.appliedCoupon = null;
     saveCartToStorage();
 
     // 4. Show Success Screen

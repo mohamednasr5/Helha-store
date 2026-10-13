@@ -6,6 +6,15 @@
 const AdminState = {
   products: [],
   orders: [],
+  coupons: [],
+  shippingSettings: {
+    freeShippingEnabled: true,
+    freeShippingThreshold: 500,
+    mode: "flat",
+    flatRate: 50,
+    govRates: {}
+  },
+  previousOrdersCount: -1,
   analytics: {},
   settings: {},
   categories: [],
@@ -134,9 +143,10 @@ function initDashboard() {
     updateDashboardStats();
   });
 
-  // 2. Sync Orders
+  // 2. Sync Orders with Live Notifications
   db.ref("orders").on("value", (snap) => {
     const data = snap.val();
+    const prevCount = AdminState.previousOrdersCount;
     if (data) {
       AdminState.orders = Object.keys(data)
         .map(key => ({ ...data[key], firebaseKey: key }))
@@ -144,6 +154,19 @@ function initDashboard() {
     } else {
       AdminState.orders = [];
     }
+
+    // Check if new orders arrived during the session
+    if (prevCount >= 0 && AdminState.orders.length > prevCount) {
+      const newOrdersDiff = AdminState.orders.length - prevCount;
+      const latestOrder = AdminState.orders[0];
+      playOrderNotificationSound();
+      showOrderNotificationToast(latestOrder, newOrdersDiff);
+    }
+    AdminState.previousOrdersCount = AdminState.orders.length;
+
+    // Update orders badge count
+    updateOrdersBadgeCount();
+
     renderAdminOrders();
     updateDashboardStats();
   });
@@ -154,9 +177,11 @@ function initDashboard() {
     updateDashboardStats();
   });
 
-  // 4. Load Settings & Categories & Messages
+  // 4. Load Settings & Categories & Messages & Shipping & Coupons
   initCategoriesListener();
   initMessagesListener();
+  initShippingListener();
+  initCouponsListener();
   loadAdminSettings();
   loadBannerSettings();
 }
@@ -785,11 +810,33 @@ function renderAdminOrders() {
           </select>
         </td>
         <td>
-          <button class="btn-admin-action" style="background:#e0f2fe; color:#0284c7; padding:4px 8px;" onclick="viewOrderDetails('${o.orderId || o.id}')">👁️ عرض التفاصيل</button>
+          <div style="display:flex; gap:0.4rem; align-items:center;">
+            <button class="btn-admin-action" style="background:#e0f2fe; color:#0284c7; padding:4px 8px; font-size:0.82rem;" onclick="viewOrderDetails('${o.orderId || o.id}')">👁️ عرض</button>
+            <button class="btn-admin-action btn-danger-outline" style="padding:4px 8px; font-size:0.82rem;" onclick="deleteAdminOrder('${o.orderId || o.id}')" title="حذف الطلب نهائياً">🗑️ حذف</button>
+          </div>
         </td>
       </tr>
     `;
   }).join("");
+}
+
+async function deleteAdminOrder(orderId) {
+  const order = AdminState.orders.find(o => String(o.orderId || o.id) === String(orderId) || o.firebaseKey === orderId);
+  const targetKey = order ? (order.firebaseKey || order.orderId || order.id) : orderId;
+
+  if (!confirm(`⚠️ تحذير:\nهل أنت متأكد تماماً من حذف الطلب #${orderId} نهائياً من قاعدة البيانات؟\nلن يمكن استعادة بيانات هذا الطلب بعد الحذف.`)) {
+    return;
+  }
+
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref(`orders/${targetKey}`).remove();
+      showAdminToast(`تم حذف الطلب #${orderId} نهائياً بنجاح 🗑️`);
+      closeOrderDetailsModal();
+    }
+  } catch (err) {
+    alert("خطأ أثناء حذف الطلب: " + err.message);
+  }
 }
 
 function getOrderStatusArabic(status) {
@@ -806,8 +853,11 @@ function getOrderStatusArabic(status) {
 async function updateOrderStatus(orderId, newStatus) {
   try {
     if (typeof db !== "undefined" && db) {
-      await db.ref(`orders/${orderId}/status`).set(newStatus);
+      const order = AdminState.orders.find(o => String(o.orderId || o.id) === String(orderId) || o.firebaseKey === orderId);
+      const targetKey = order ? (order.firebaseKey || order.orderId || order.id) : orderId;
+      await db.ref(`orders/${targetKey}/status`).set(newStatus);
       showAdminToast(`تم تغيير حالة الطلب #${orderId} إلى "${getOrderStatusArabic(newStatus)}" ✅`);
+      updateOrdersBadgeCount();
     }
   } catch (err) {
     alert("خطأ أثناء تحديث حالة الطلب: " + err.message);
@@ -815,7 +865,7 @@ async function updateOrderStatus(orderId, newStatus) {
 }
 
 function viewOrderDetails(orderId) {
-  const order = AdminState.orders.find(o => String(o.orderId || o.id) === String(orderId));
+  const order = AdminState.orders.find(o => String(o.orderId || o.id) === String(orderId) || o.firebaseKey === orderId);
   if (!order) return;
 
   const modal = document.getElementById("order-details-modal");
@@ -837,6 +887,8 @@ function viewOrderDetails(orderId) {
       <p><strong>العنوان التفصيلي:</strong> ${order.address}</p>
       ${order.notes ? `<p><strong>ملاحظات:</strong> ${order.notes}</p>` : ""}
       <p><strong>تاريخ وتوقيت الطلب:</strong> ${order.createdAt || "-"}</p>
+      ${order.couponCode ? `<p style="margin-top:0.4rem;"><strong>كود الخصم المطبق:</strong> <span class="coupon-tag-badge">🎟️ ${order.couponCode}</span> (وفّر للعميل: ${order.discountAmount || 0} ج.م)</p>` : ""}
+      <p style="margin-top:0.4rem;"><strong>مصاريف الشحن:</strong> ${order.shippingFee ? order.shippingFee + " ج.م" : "شحن مجاني 🎉"}</p>
     </div>
 
     <h4 style="margin-bottom:0.5rem; color:var(--admin-primary);">المنتجات المطلوبة:</h4>
@@ -852,6 +904,15 @@ function viewOrderDetails(orderId) {
     <div style="border-top:1px dashed var(--border-color); padding-top:0.75rem; font-size:1.1rem; font-weight:800; display:flex; justify-content:space-between; color:var(--admin-primary);">
       <span>الإجمالي المستحق:</span>
       <span>${order.totalAmount || 0} ج.م (${order.paymentMethod || "الدفع عند الاستلام"})</span>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border-color); flex-wrap:wrap; gap:0.5rem;">
+      <button class="btn-admin-action btn-danger-outline" onclick="deleteAdminOrder('${order.orderId || order.id}')">
+        🗑️ حذف هذا الطلب نهائياً من النظام
+      </button>
+      <button class="btn-admin-action" style="background:#e2e8f0; color:#334155;" onclick="closeOrderDetailsModal()">
+        إغلاق النافذة
+      </button>
     </div>
   `;
 
@@ -1291,6 +1352,10 @@ function setupAdminNavigation() {
         renderAdminOrders();
       } else if (targetTab === "products") {
         renderAdminProducts();
+      } else if (targetTab === "shipping") {
+        renderShippingSettings();
+      } else if (targetTab === "coupons") {
+        renderCouponsList();
       }
     });
   });
@@ -1434,3 +1499,488 @@ async function deleteAdminMessage(msgId) {
 }
 
 window.deleteAdminMessage = deleteAdminMessage;
+
+// ==========================================================================
+// 14. Realtime Order Notifications & Sound & Badges
+// ==========================================================================
+function updateOrdersBadgeCount() {
+  const badge = document.getElementById("orders-badge-count");
+  if (!badge) return;
+  const newOrders = AdminState.orders.filter(o => o.status === "new" || !o.status).length;
+  if (newOrders > 0) {
+    badge.textContent = newOrders;
+    badge.style.display = "inline-block";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+function playOrderNotificationSound() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+
+    // Tone 1 (659.25Hz - E5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
+    gain1.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start();
+    osc1.stop(ctx.currentTime + 0.4);
+
+    // Tone 2 (880Hz - A5) with slight delay for pleasant chime
+    setTimeout(() => {
+      try {
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(880, ctx.currentTime);
+        gain2.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start();
+        osc2.stop(ctx.currentTime + 0.7);
+      } catch (e) {}
+    }, 140);
+  } catch (err) {
+    console.warn("Audio notification not supported or blocked by browser:", err);
+  }
+}
+
+function showOrderNotificationToast(order, diff) {
+  const customer = order ? (order.customerName || "عميل") : "عميل";
+  const amount = order ? (order.totalAmount || 0) : 0;
+  const id = order ? (order.orderId || order.id || "") : "";
+  const msg = diff > 1
+    ? `🔔 وصل ${diff} طلبات جديدة الآن في المتجر!`
+    : `🔔 طلب جديد وارد! #${id} من "${customer}" بقيمة ${amount} ج.م 🚚`;
+  showAdminToast(msg);
+
+  // Browser desktop notification if supported and granted
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("طلب شراء جديد - متجر حِلها! 🛒", {
+      body: `طلب #${id} من ${customer} بقيمة ${amount} ج.م`,
+      icon: "assets/icon-192.png"
+    });
+  } else if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+}
+
+// ==========================================================================
+// 15. Shipping Fees & Governorates Rates Management
+// ==========================================================================
+const EGYPT_GOVERNORATES = [
+  "القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "الشرقية", "القليوبية",
+  "المنوفية", "الغربية", "كفر الشيخ", "البحيرة", "دمياط", "بورسعيد",
+  "الإسماعيلية", "السويس", "الفيوم", "بني سويف", "المنيا", "أسيوط",
+  "سوهاج", "قنا", "الأقصر", "أسوان", "البحر الأحمر", "شمال سيناء",
+  "جنوب سيناء", "الوادي الجديد", "مطروح"
+];
+
+function initShippingListener() {
+  if (typeof db === "undefined" || !db) {
+    renderShippingSettings();
+    return;
+  }
+
+  db.ref("settings/shipping").on("value", (snap) => {
+    const data = snap.val();
+    if (data) {
+      AdminState.shippingSettings = {
+        freeShippingEnabled: data.freeShippingEnabled !== false,
+        freeShippingThreshold: Number(data.freeShippingThreshold) || 500,
+        mode: data.mode || "flat",
+        flatRate: Number(data.flatRate) || 50,
+        govRates: data.govRates || {}
+      };
+    }
+    renderShippingSettings();
+  });
+}
+
+function renderShippingSettings() {
+  const s = AdminState.shippingSettings;
+  const freeCheck = document.getElementById("shipping-free-enabled");
+  const freeThreshold = document.getElementById("shipping-free-threshold");
+  const flatRateInput = document.getElementById("shipping-flat-rate");
+  const govRatesContainer = document.getElementById("gov-rates-list");
+
+  if (freeCheck) freeCheck.checked = s.freeShippingEnabled !== false;
+  if (freeThreshold) freeThreshold.value = s.freeShippingThreshold || 500;
+  if (flatRateInput) flatRateInput.value = s.flatRate || 50;
+
+  selectShippingMode(s.mode || "flat");
+
+  if (govRatesContainer) {
+    govRatesContainer.innerHTML = EGYPT_GOVERNORATES.map(gov => {
+      const rate = (s.govRates && s.govRates[gov] !== undefined) ? s.govRates[gov] : (s.flatRate || 50);
+      return `
+        <div class="gov-rate-item">
+          <span>${gov}</span>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <input type="number" class="gov-rate-input" data-gov="${gov}" value="${rate}" min="0" step="5">
+            <small style="font-weight:700; color:var(--text-muted);">ج.م</small>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+}
+
+function selectShippingMode(mode) {
+  AdminState.shippingSettings.mode = mode;
+
+  const cardFlat = document.getElementById("card-mode-flat");
+  const cardPerGov = document.getElementById("card-mode-per-gov");
+  const flatBox = document.getElementById("shipping-flat-container");
+  const perGovBox = document.getElementById("shipping-per-gov-container");
+  const radioFlat = document.getElementById("radio-mode-flat");
+  const radioPerGov = document.getElementById("radio-mode-per-gov");
+
+  if (mode === "flat") {
+    if (cardFlat) cardFlat.classList.add("selected");
+    if (cardPerGov) cardPerGov.classList.remove("selected");
+    if (flatBox) flatBox.style.display = "block";
+    if (perGovBox) perGovBox.style.display = "none";
+    if (radioFlat) radioFlat.checked = true;
+  } else {
+    if (cardFlat) cardFlat.classList.remove("selected");
+    if (cardPerGov) cardPerGov.classList.add("selected");
+    if (flatBox) flatBox.style.display = "none";
+    if (perGovBox) perGovBox.style.display = "block";
+    if (radioPerGov) radioPerGov.checked = true;
+  }
+}
+
+function applyBulkGovRate() {
+  const bulkInput = document.getElementById("bulk-gov-rate");
+  if (!bulkInput || !bulkInput.value) {
+    alert("يرجى إدخال قيمة السعر الموحد أولاً!");
+    return;
+  }
+  const val = Number(bulkInput.value);
+  const inputs = document.querySelectorAll(".gov-rate-input");
+  inputs.forEach(inp => {
+    inp.value = val;
+  });
+  showAdminToast(`تم تطبيق سعر ${val} ج.م على كافة المحافظات الـ 27 📍`);
+}
+
+async function saveShippingSettings() {
+  const freeCheck = document.getElementById("shipping-free-enabled");
+  const freeThreshold = document.getElementById("shipping-free-threshold");
+  const flatRateInput = document.getElementById("shipping-flat-rate");
+  const mode = AdminState.shippingSettings.mode || "flat";
+
+  const govRates = {};
+  const inputs = document.querySelectorAll(".gov-rate-input");
+  inputs.forEach(inp => {
+    const gov = inp.getAttribute("data-gov");
+    if (gov) {
+      govRates[gov] = Number(inp.value) || 0;
+    }
+  });
+
+  const payload = {
+    freeShippingEnabled: freeCheck ? freeCheck.checked : true,
+    freeShippingThreshold: freeThreshold ? (Number(freeThreshold.value) || 500) : 500,
+    mode: mode,
+    flatRate: flatRateInput ? (Number(flatRateInput.value) || 50) : 50,
+    govRates: govRates,
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref("settings/shipping").set(payload);
+      showAdminToast("تم حفظ ونشر إعدادات الشحن بنجاح في المتجر! 🚚");
+    }
+  } catch (err) {
+    alert("خطأ أثناء حفظ إعدادات الشحن: " + err.message);
+  }
+}
+
+// ==========================================================================
+// 16. Coupons & Discount Codes Management & Analytics
+// ==========================================================================
+function initCouponsListener() {
+  if (typeof db === "undefined" || !db) {
+    renderCouponsList();
+    return;
+  }
+
+  db.ref("coupons").on("value", (snap) => {
+    const data = snap.val();
+    if (data) {
+      AdminState.coupons = Object.keys(data).map(key => ({
+        ...data[key],
+        code: key
+      }));
+    } else {
+      AdminState.coupons = [];
+    }
+    renderCouponsList();
+  });
+}
+
+function renderCouponsList() {
+  const tbody = document.getElementById("admin-coupons-tbody");
+  if (!tbody) return;
+
+  const coupons = AdminState.coupons || [];
+  if (coupons.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding:2.5rem; color:var(--text-muted);">
+          🎟️ لا توجد أكواد خصم حالياً. اضغط على زر "إضافة كود خصم جديد" بالأعلى لإنشاء أول كود.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const now = new Date().getTime();
+
+  tbody.innerHTML = coupons.map(c => {
+    const isExpired = c.expiryDate ? (new Date(c.expiryDate).getTime() < now) : false;
+    const isLimitReached = (c.usageLimit > 0) && ((c.usedCount || 0) >= c.usageLimit);
+    
+    let statusBadge = "";
+    if (c.status === "disabled") {
+      statusBadge = `<span class="status-badge coupon-status-disabled">معطّل ⚪</span>`;
+    } else if (isExpired) {
+      statusBadge = `<span class="status-badge coupon-status-expired">منتهي الصلاحية 🔴</span>`;
+    } else if (isLimitReached) {
+      statusBadge = `<span class="status-badge coupon-status-expired">اكتمل الحد 🔴</span>`;
+    } else {
+      statusBadge = `<span class="status-badge coupon-status-active">نشط وفعّال 🟢</span>`;
+    }
+
+    const typeLabel = c.type === "fixed" ? `${c.value} ج.م` : `${c.value}%`;
+    const minOrderText = c.minOrder > 0 ? `${c.minOrder} ج.م` : "بدون حد";
+    const expiryText = c.expiryDate ? new Date(c.expiryDate).toLocaleString("ar-EG") : "مفتوح (بدون انتهاء)";
+    const usageText = c.usageLimit > 0 ? `${c.usedCount || 0} / ${c.usageLimit}` : `${c.usedCount || 0} / غير محدود`;
+    const totalDiscountAmount = c.totalDiscountGiven || 0;
+
+    return `
+      <tr>
+        <td><span class="coupon-tag-badge">🎟️ ${c.code}</span></td>
+        <td><strong>${typeLabel}</strong> <small style="color:var(--text-muted);">${c.type === 'fixed' ? 'خصم مالي' : 'نسبة مئوية'}</small></td>
+        <td>${minOrderText}</td>
+        <td style="font-size:0.85rem; color:var(--text-muted);">${expiryText}</td>
+        <td><span class="coupon-stat-pill">👥 ${usageText}</span></td>
+        <td><strong style="color:#16a34a;">${totalDiscountAmount} ج.م</strong></td>
+        <td>${statusBadge}</td>
+        <td>
+          <div style="display:flex; gap:0.4rem; align-items:center;">
+            <button class="btn-admin-action" style="background:#eff6ff; color:#1d4ed8; padding:4px 8px; font-size:0.8rem;" onclick="viewCouponAnalytics('${c.code}')" title="عرض إحصائيات من استخدم الكود">
+              📊 المستخدمين
+            </button>
+            <button class="btn-admin-action" style="background:${c.status === 'disabled' ? '#dcfce7' : '#f1f5f9'}; color:${c.status === 'disabled' ? '#15803d' : '#475569'}; padding:4px 8px; font-size:0.8rem;" onclick="toggleCouponStatus('${c.code}')" title="تفعيل أو تعطيل الكود">
+              ${c.status === 'disabled' ? 'تفعيل' : 'تعطيل'}
+            </button>
+            <button class="btn-admin-action btn-danger-outline" style="padding:4px 8px; font-size:0.8rem;" onclick="deleteCoupon('${c.code}')" title="حذف الكود نهائياً">
+              🗑️
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function openAddCouponModal() {
+  const form = document.getElementById("coupon-form");
+  if (form) form.reset();
+  const title = document.getElementById("coupon-modal-title");
+  if (title) title.textContent = "➕ إنشاء كود خصم جديد";
+  const codeInp = document.getElementById("coupon-code");
+  if (codeInp) codeInp.readOnly = false;
+  updateCouponUnitLabel();
+  document.getElementById("coupon-modal").classList.add("active");
+}
+
+function closeCouponModal() {
+  document.getElementById("coupon-modal").classList.remove("active");
+}
+
+function updateCouponUnitLabel() {
+  const typeSelect = document.getElementById("coupon-type");
+  const label = document.getElementById("coupon-unit-label");
+  if (typeSelect && label) {
+    label.textContent = typeSelect.value === "fixed" ? "ج.م" : "%";
+  }
+}
+
+async function handleSaveCoupon(e) {
+  e.preventDefault();
+
+  const code = document.getElementById("coupon-code").value.trim().toUpperCase();
+  const type = document.getElementById("coupon-type").value;
+  const value = Number(document.getElementById("coupon-value").value) || 0;
+  const minOrder = Number(document.getElementById("coupon-min-order").value) || 0;
+  const usageLimit = Number(document.getElementById("coupon-usage-limit").value) || 0;
+  const expiry = document.getElementById("coupon-expiry").value || null;
+  const status = document.getElementById("coupon-status").value || "active";
+
+  if (!code || value <= 0) {
+    alert("يرجى ملء كود الخصم وتحديد قيمة صحيحة للخصم!");
+    return;
+  }
+
+  // Find if already exists to preserve usage statistics
+  const existing = AdminState.coupons.find(c => c.code === code);
+  const usedCount = existing ? (existing.usedCount || 0) : 0;
+  const totalDiscountGiven = existing ? (existing.totalDiscountGiven || 0) : 0;
+  const usages = existing ? (existing.usages || {}) : {};
+
+  const couponData = {
+    code: code,
+    type: type,
+    value: value,
+    minOrder: minOrder,
+    usageLimit: usageLimit,
+    expiryDate: expiry,
+    status: status,
+    usedCount: usedCount,
+    totalDiscountGiven: totalDiscountGiven,
+    usages: usages,
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref(`coupons/${code}`).set(couponData);
+      showAdminToast(`تم حفظ وتفعيل كود الخصم "${code}" بنجاح! 🎟️`);
+      closeCouponModal();
+    }
+  } catch (err) {
+    alert("خطأ أثناء حفظ كود الخصم: " + err.message);
+  }
+}
+
+async function toggleCouponStatus(code) {
+  const coupon = AdminState.coupons.find(c => c.code === code);
+  if (!coupon) return;
+  const newStatus = coupon.status === "disabled" ? "active" : "disabled";
+
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref(`coupons/${code}/status`).set(newStatus);
+      showAdminToast(`تم تغيير حالة الكود "${code}" إلى "${newStatus === 'active' ? 'مفعّل 🟢' : 'معطّل ⚪'}"`);
+    }
+  } catch (err) {
+    alert("خطأ أثناء تحديث حالة الكود: " + err.message);
+  }
+}
+
+async function deleteCoupon(code) {
+  if (!confirm(`⚠️ هل أنت متأكد من حذف كود الخصم "${code}" نهائياً من المتجر؟`)) {
+    return;
+  }
+
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref(`coupons/${code}`).remove();
+      showAdminToast(`تم حذف كود الخصم "${code}" نهائياً 🗑️`);
+    }
+  } catch (err) {
+    alert("خطأ أثناء حذف الكود: " + err.message);
+  }
+}
+
+function viewCouponAnalytics(code) {
+  const coupon = AdminState.coupons.find(c => c.code === code);
+  if (!coupon) return;
+
+  const modal = document.getElementById("coupon-analytics-modal");
+  const title = document.getElementById("coupon-analytics-title");
+  const usesEl = document.getElementById("analytics-total-uses");
+  const discEl = document.getElementById("analytics-total-discount");
+  const salesEl = document.getElementById("analytics-total-sales");
+  const tbody = document.getElementById("coupon-users-tbody");
+
+  if (title) title.textContent = `📊 سجل وإحصائيات كود الخصم: #${coupon.code}`;
+
+  // Gather usages either from coupon.usages object or scanning orders with this coupon
+  let usageList = [];
+  if (coupon.usages) {
+    usageList = Object.keys(coupon.usages).map(k => coupon.usages[k]);
+  }
+
+  // Also include any orders that recorded this coupon
+  AdminState.orders.forEach(o => {
+    if (o.couponCode && o.couponCode.toUpperCase() === coupon.code.toUpperCase()) {
+      if (!usageList.some(u => String(u.orderId) === String(o.orderId || o.id))) {
+        usageList.push({
+          orderId: o.orderId || o.id,
+          customerName: o.customerName || "-",
+          customerPhone: o.customerPhone || "-",
+          discountAmount: o.discountAmount || 0,
+          totalAmount: o.totalAmount || 0,
+          usedAt: o.createdAt || "-"
+        });
+      }
+    }
+  });
+
+  const totalUses = usageList.length || (coupon.usedCount || 0);
+  const totalDiscount = usageList.reduce((sum, u) => sum + (Number(u.discountAmount) || 0), 0) || (coupon.totalDiscountGiven || 0);
+  const totalSales = usageList.reduce((sum, u) => sum + (Number(u.totalAmount) || 0), 0);
+
+  if (usesEl) usesEl.textContent = totalUses;
+  if (discEl) discEl.textContent = `${totalDiscount.toLocaleString("ar-EG")} ج.م`;
+  if (salesEl) salesEl.textContent = `${totalSales.toLocaleString("ar-EG")} ج.م`;
+
+  if (tbody) {
+    if (usageList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">لم يتم استخدام هذا الكود في أي طلب حتى الآن</td></tr>`;
+    } else {
+      tbody.innerHTML = usageList.map(u => {
+        const cleanPhone = (u.customerPhone || "").replace(/\D/g, "");
+        const waLink = cleanPhone ? `https://wa.me/2${cleanPhone}` : "#";
+        return `
+          <tr>
+            <td><strong>#${u.orderId || "-"}</strong></td>
+            <td><strong>${u.customerName || "-"}</strong></td>
+            <td><a href="${waLink}" target="_blank" style="color:#16a34a; font-weight:700;">💬 ${u.customerPhone || "-"}</a></td>
+            <td style="font-size:0.8rem; color:var(--text-muted);">${u.usedAt || "-"}</td>
+            <td><strong style="color:#16a34a;">-${u.discountAmount || 0} ج.م</strong></td>
+            <td><strong>${u.totalAmount || 0} ج.م</strong></td>
+          </tr>
+        `;
+      }).join("");
+    }
+  }
+
+  modal.classList.add("active");
+}
+
+function closeCouponAnalyticsModal() {
+  document.getElementById("coupon-analytics-modal").classList.remove("active");
+}
+
+// Window exports for HTML onclick handlers
+window.updateOrdersBadgeCount = updateOrdersBadgeCount;
+window.playOrderNotificationSound = playOrderNotificationSound;
+window.selectShippingMode = selectShippingMode;
+window.applyBulkGovRate = applyBulkGovRate;
+window.saveShippingSettings = saveShippingSettings;
+window.openAddCouponModal = openAddCouponModal;
+window.closeCouponModal = closeCouponModal;
+window.updateCouponUnitLabel = updateCouponUnitLabel;
+window.handleSaveCoupon = handleSaveCoupon;
+window.toggleCouponStatus = toggleCouponStatus;
+window.deleteCoupon = deleteCoupon;
+window.viewCouponAnalytics = viewCouponAnalytics;
+window.closeCouponAnalyticsModal = closeCouponAnalyticsModal;
+window.deleteAdminOrder = deleteAdminOrder;
+

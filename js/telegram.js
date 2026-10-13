@@ -158,7 +158,7 @@ ${itemsText}
 
 💰 <b>الحساب الإجمالي:</b>
 • المجموع الفرعي: ${order.subtotal || 0} ج.م
-• الشحن: ${order.shippingFee ? order.shippingFee + " ج.م" : "مجاني"}
+${order.couponCode ? `• كود الخصم: <code>${order.couponCode}</code> (خصم ${order.discountAmount || 0} ج.م)\n` : ""}• الشحن: ${order.shippingFee ? order.shippingFee + " ج.م" : "مجاني"}
 • <b>الإجمالي النهائي: ${order.totalAmount || 0} ج.م</b>
 • طريقة الدفع: <b>${order.paymentMethod || "الدفع عند الاستلام (COD)"}</b>
 

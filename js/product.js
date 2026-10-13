@@ -7,8 +7,9 @@ const ProductPage = {
   currentProduct: null,
   selectedOfferIndex: 0,
   couponDiscount: 0,
-  appliedCouponCode: "",
-  shippingFee: 0, // Free shipping default or per governorate
+  appliedCoupon: null,
+  shippingFee: 50,
+  shippingSettings: null,
 
   // Governorates of Egypt
   governorates: [
@@ -21,8 +22,21 @@ const ProductPage = {
 
   async init() {
     this.populateGovernorates();
+    this.initShippingListener();
     await this.loadProduct();
     this.setupListeners();
+  },
+
+  initShippingListener() {
+    if (typeof db !== "undefined" && db) {
+      db.ref("settings/shipping").on("value", (snap) => {
+        const val = snap.val();
+        if (val) {
+          this.shippingSettings = val;
+          this.recalculateShipping();
+        }
+      });
+    }
   },
 
   populateGovernorates() {
@@ -31,6 +45,10 @@ const ProductPage = {
 
     select.innerHTML = '<option value="" disabled selected>اختر المحافظة...</option>' +
       this.governorates.map(gov => `<option value="${gov}">${gov}</option>`).join("");
+
+    select.addEventListener("change", () => {
+      this.recalculateShipping();
+    });
   },
 
   async loadProduct() {
@@ -224,6 +242,34 @@ const ProductPage = {
         card.classList.remove("selected");
       }
     });
+    this.recalculateShipping();
+  },
+
+  recalculateShipping() {
+    const currentOffer = this.offers ? this.offers[this.selectedOfferIndex] : null;
+    const subtotal = currentOffer ? currentOffer.totalPrice : (this.currentProduct ? this.currentProduct.price : 0);
+    const govSelect = document.getElementById("order-gov");
+    const selectedGov = govSelect ? govSelect.value : "";
+
+    const s = this.shippingSettings;
+    if (s) {
+      if (s.freeShippingEnabled && Number(s.freeShippingThreshold) > 0 && subtotal >= Number(s.freeShippingThreshold)) {
+        this.shippingFee = 0;
+      } else if (s.mode === "flat") {
+        this.shippingFee = Number(s.flatRate) || 0;
+      } else if (s.mode === "per_gov") {
+        if (selectedGov && s.govRates && s.govRates[selectedGov] !== undefined) {
+          this.shippingFee = Number(s.govRates[selectedGov]);
+        } else {
+          this.shippingFee = Number(s.flatRate) || 50;
+        }
+      } else {
+        this.shippingFee = Number(s.flatRate) || 50;
+      }
+    } else {
+      this.shippingFee = 50;
+    }
+
     this.updateCalculation();
   },
 
@@ -231,43 +277,130 @@ const ProductPage = {
     const currentOffer = this.offers ? this.offers[this.selectedOfferIndex] : null;
     const subtotal = currentOffer ? currentOffer.totalPrice : (this.currentProduct ? this.currentProduct.price : 0);
 
-    const discountAmount = this.couponDiscount > 0 ? Math.round(subtotal * (this.couponDiscount / 100)) : 0;
+    let discountAmount = 0;
+    if (this.appliedCoupon) {
+      if (this.appliedCoupon.type === "fixed") {
+        discountAmount = Math.min(subtotal, Number(this.appliedCoupon.value) || 0);
+      } else {
+        discountAmount = Math.round(subtotal * ((Number(this.appliedCoupon.value) || 0) / 100));
+      }
+    }
+
     const finalTotal = Math.max(0, subtotal - discountAmount + this.shippingFee);
 
     const subtotalEl = document.getElementById("summary-subtotal");
+    const discountRowEl = document.getElementById("summary-discount-row");
+    const discountEl = document.getElementById("summary-discount");
     const shippingEl = document.getElementById("summary-shipping");
     const totalEl = document.getElementById("summary-total");
     const bottomBtnPriceEl = document.getElementById("btn-bottom-total");
 
     if (subtotalEl) subtotalEl.textContent = `${subtotal} ج.م`;
-    if (shippingEl) shippingEl.textContent = this.shippingFee === 0 ? "شحن مجاني 🎉" : `${this.shippingFee} ج.م`;
+
+    if (discountRowEl && discountEl) {
+      if (discountAmount > 0) {
+        discountRowEl.style.display = "flex";
+        discountEl.textContent = `-${discountAmount} ج.م (${this.appliedCoupon.code})`;
+      } else {
+        discountRowEl.style.display = "none";
+      }
+    }
+
+    if (shippingEl) {
+      if (this.shippingFee === 0) {
+        shippingEl.textContent = "شحن مجاني 🎉";
+        shippingEl.style.color = "#16a34a";
+      } else {
+        shippingEl.textContent = `${this.shippingFee} ج.م`;
+        shippingEl.style.color = "inherit";
+      }
+    }
+
     if (totalEl) totalEl.textContent = `${finalTotal} ج.م`;
     if (bottomBtnPriceEl) bottomBtnPriceEl.textContent = `(${finalTotal} ج.م)`;
   },
 
-  applyCoupon() {
+  async applyCoupon() {
     const input = document.getElementById("order-coupon");
     const resultEl = document.getElementById("coupon-result");
-    if (!input) return;
+    if (!input || !resultEl) return;
 
     const code = input.value.trim().toUpperCase();
-    if (!code) return;
+    if (!code) {
+      resultEl.textContent = "يرجى كتابة كود الخصم أولاً";
+      resultEl.style.color = "#ea580c";
+      return;
+    }
 
-    if (code === "HELHA10" || code === "حلها10") {
-      this.couponDiscount = 10;
-      this.appliedCouponCode = code;
-      resultEl.textContent = "✅ تم تطبيق خصم 10% بنجاح!";
+    resultEl.textContent = "جاري التحقق من كود الخصم...";
+    resultEl.style.color = "#6b7280";
+
+    const currentOffer = this.offers ? this.offers[this.selectedOfferIndex] : null;
+    const subtotal = currentOffer ? currentOffer.totalPrice : (this.currentProduct ? this.currentProduct.price : 0);
+
+    try {
+      let couponData = null;
+      if (typeof db !== "undefined" && db) {
+        const snap = await db.ref(`coupons/${code}`).once("value");
+        couponData = snap.val();
+      }
+
+      if (!couponData) {
+        if (code === "HELHA10" || code === "حلها10") {
+          couponData = { code: "HELHA10", type: "percent", value: 10, status: "active" };
+        } else if (code === "HELHA20" || code === "حلها20") {
+          couponData = { code: "HELHA20", type: "percent", value: 20, status: "active" };
+        } else {
+          resultEl.textContent = "❌ كود الخصم غير موجود أو غير صالح";
+          resultEl.style.color = "#dc2626";
+          this.appliedCoupon = null;
+          this.updateCalculation();
+          return;
+        }
+      }
+
+      if (couponData.status !== "active") {
+        resultEl.textContent = "❌ كود الخصم غير مفعل حالياً";
+        resultEl.style.color = "#dc2626";
+        this.appliedCoupon = null;
+        this.updateCalculation();
+        return;
+      }
+
+      if (couponData.expiryDate && new Date(couponData.expiryDate).getTime() < Date.now()) {
+        resultEl.textContent = "❌ لقد انتهت صلاحية هذا الكود";
+        resultEl.style.color = "#dc2626";
+        this.appliedCoupon = null;
+        this.updateCalculation();
+        return;
+      }
+
+      if (couponData.usageLimit && (couponData.usedCount || 0) >= Number(couponData.usageLimit)) {
+        resultEl.textContent = "❌ وصل هذا الكود إلى الحد الأقصى للاستخدام";
+        resultEl.style.color = "#dc2626";
+        this.appliedCoupon = null;
+        this.updateCalculation();
+        return;
+      }
+
+      if (couponData.minOrder && subtotal < Number(couponData.minOrder)) {
+        resultEl.textContent = `❌ الحد الأدنى لتفعيل هذا الكود هو ${couponData.minOrder} ج.م`;
+        resultEl.style.color = "#dc2626";
+        this.appliedCoupon = null;
+        this.updateCalculation();
+        return;
+      }
+
+      this.appliedCoupon = { ...couponData, code };
+      const discountLabel = couponData.type === "fixed" ? `${couponData.value} ج.م` : `${couponData.value}%`;
+      resultEl.textContent = `✅ تم تطبيق خصم (${discountLabel}) بنجاح!`;
       resultEl.style.color = "#16a34a";
-    } else if (code === "HELHA20" || code === "حلها20") {
-      this.couponDiscount = 20;
-      this.appliedCouponCode = code;
-      resultEl.textContent = "✅ تم تطبيق خصم 20% بنجاح!";
-      resultEl.style.color = "#16a34a";
-    } else {
-      resultEl.textContent = "❌ كود الخصم غير صالح أو منتهي الصلاحية";
+      this.updateCalculation();
+    } catch (err) {
+      console.error("Coupon check error:", err);
+      resultEl.textContent = "❌ تعذر التحقق من الكود، حاول مجدداً";
       resultEl.style.color = "#dc2626";
     }
-    this.updateCalculation();
   },
 
   scrollToOrderForm() {
@@ -361,7 +494,14 @@ const ProductPage = {
 
     const currentOffer = this.offers[this.selectedOfferIndex];
     const subtotal = currentOffer.totalPrice;
-    const discountAmount = this.couponDiscount > 0 ? Math.round(subtotal * (this.couponDiscount / 100)) : 0;
+    let discountAmount = 0;
+    if (this.appliedCoupon) {
+      if (this.appliedCoupon.type === "fixed") {
+        discountAmount = Math.min(subtotal, Number(this.appliedCoupon.value) || 0);
+      } else {
+        discountAmount = Math.round(subtotal * ((Number(this.appliedCoupon.value) || 0) / 100));
+      }
+    }
     const totalAmount = Math.max(0, subtotal - discountAmount + this.shippingFee);
 
     const orderId = "HLH-" + Math.floor(100000 + Math.random() * 900000);
@@ -373,7 +513,8 @@ const ProductPage = {
       customerPhone: phone,
       city: gov,
       address: address,
-      couponCode: this.appliedCouponCode || null,
+      couponCode: this.appliedCoupon ? this.appliedCoupon.code : null,
+      discountAmount: discountAmount,
       selectedOffer: {
         qty: currentOffer.qty,
         title: currentOffer.title,
@@ -403,6 +544,27 @@ const ProductPage = {
         await db.ref(`orders/${orderId}`).set(orderData);
         db.ref("analytics/totalOrders").transaction((c) => (c || 0) + 1);
         db.ref("analytics/totalRevenue").transaction((c) => (c || 0) + totalAmount);
+
+        // Record coupon usage in Firebase
+        if (this.appliedCoupon && this.appliedCoupon.code) {
+          try {
+            const couponKey = this.appliedCoupon.code;
+            const usageRef = db.ref(`coupons/${couponKey}/usages`).push();
+            await usageRef.set({
+              orderId: orderId,
+              customerName: name,
+              customerPhone: phone,
+              discountAmount: discountAmount,
+              totalAmount: totalAmount,
+              timestamp: Date.now(),
+              createdAt: new Date().toLocaleString("ar-EG")
+            });
+            db.ref(`coupons/${couponKey}/usedCount`).transaction((c) => (c || 0) + 1);
+            db.ref(`coupons/${couponKey}/totalDiscountGiven`).transaction((d) => (d || 0) + discountAmount);
+          } catch (cErr) {
+            console.warn("Could not record coupon usage:", cErr);
+          }
+        }
       }
 
       // 2. Notify Telegram

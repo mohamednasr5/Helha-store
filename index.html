@@ -383,8 +383,37 @@
               <input type="tel" id="order-customer-phone" class="form-control" placeholder="010XXXXXXXX" dir="ltr" style="text-align:right;" required>
             </div>
             <div class="form-group">
-              <label class="form-label" for="order-customer-city">المحافظة / المدينة <span class="req">*</span></label>
-              <input type="text" id="order-customer-city" class="form-control" placeholder="مثال: القاهرة - المعادي" required>
+              <label class="form-label" for="order-customer-city">المحافظة <span class="req">*</span></label>
+              <select id="order-customer-city" class="form-control" onchange="updateCheckoutReview()" required>
+                <option value="" disabled selected>اختر المحافظة...</option>
+                <option value="القاهرة">القاهرة</option>
+                <option value="الجيزة">الجيزة</option>
+                <option value="الإسكندرية">الإسكندرية</option>
+                <option value="الدقهلية">الدقهلية</option>
+                <option value="الشرقية">الشرقية</option>
+                <option value="القليوبية">القليوبية</option>
+                <option value="المنوفية">المنوفية</option>
+                <option value="الغربية">الغربية</option>
+                <option value="كفر الشيخ">كفر الشيخ</option>
+                <option value="البحيرة">البحيرة</option>
+                <option value="دمياط">دمياط</option>
+                <option value="بورسعيد">بورسعيد</option>
+                <option value="الإسماعيلية">الإسماعيلية</option>
+                <option value="السويس">السويس</option>
+                <option value="الفيوم">الفيوم</option>
+                <option value="بني سويف">بني سويف</option>
+                <option value="المنيا">المنيا</option>
+                <option value="أسيوط">أسيوط</option>
+                <option value="سوهاج">سوهاج</option>
+                <option value="قنا">قنا</option>
+                <option value="الأقصر">الأقصر</option>
+                <option value="أسوان">أسوان</option>
+                <option value="البحر الأحمر">البحر الأحمر</option>
+                <option value="شمال سيناء">شمال سيناء</option>
+                <option value="جنوب سيناء">جنوب سيناء</option>
+                <option value="الوادي الجديد">الوادي الجديد</option>
+                <option value="مطروح">مطروح</option>
+              </select>
             </div>
           </div>
 
@@ -396,6 +425,18 @@
           <div class="form-group">
             <label class="form-label" for="order-customer-notes">ملاحظات إضافية للتوصيل (اختياري)</label>
             <textarea id="order-customer-notes" class="form-control" rows="2" placeholder="أي تعليمات إضافية لمندوب الشحن أو موعد مفضل..."></textarea>
+          </div>
+
+          <!-- Coupon Input -->
+          <div class="form-group" style="background:#f8fafc; border:1px dashed var(--border); padding:0.85rem; border-radius:8px;">
+            <label class="form-label" for="checkout-coupon-code" style="margin-bottom:0.4rem;">كود الخصم (اختياري)</label>
+            <div style="display:flex; gap:0.5rem;">
+              <input type="text" id="checkout-coupon-code" class="form-control" placeholder="أدخل كود الخصم إن وجد" style="text-transform:uppercase; font-weight:700;">
+              <button type="button" class="btn-checkout" onclick="applyCheckoutCoupon()" style="padding:0.6rem 1.25rem; font-weight:800; border-radius:8px; white-space:nowrap; width:auto;">
+                تطبيق
+              </button>
+            </div>
+            <div id="checkout-coupon-msg" style="font-size:0.82rem; font-weight:700; margin-top:0.35rem;"></div>
           </div>
 
           <!-- Mandatory Return Policy Agreement -->
