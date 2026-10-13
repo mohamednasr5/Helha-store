@@ -1,0 +1,44 @@
+﻿# Robots.txt for Helha Store (https://helha-eg.com)
+# Generated for 100% SEO & AI Search Optimization
+
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /*?*order=
+Disallow: /*?*cat=all
+
+# Allow Major AI Search & LLM Engines
+User-agent: Googlebot
+Allow: /
+Disallow: /admin.html
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin.html
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin.html
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin.html
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin.html
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin.html
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin.html
+
+User-agent: Applebot
+Allow: /
+Disallow: /admin.html
+
+# XML Sitemap
+Sitemap: https://helha-eg.com/sitemap.xml

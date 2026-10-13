@@ -3,7 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>صفحة الشراء المباشر | متجر حِلها - Helha</title>
+  <title>صفحة الشراء المباشر | متجر حِلها (Helha) - حلول ذكية وأدوات مبتكرة</title>
+  <meta name="description" content="اشترِ الآن مباشرة من متجر حِلها (Helha) مع ضمان المعاينة قبل الدفع، وأفضل عروض التوفير والخصومات، وشحن سريع لجميع محافظات مصر.">
+  <meta name="keywords" content="متجر حلها, شراء اونلاين مصر, ادوات منزلية, حلول المطبخ, الدفع عند الاستلام, عروض حلها, helha-eg.com">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <link rel="canonical" href="https://helha-eg.com/product.html">
+
+  <!-- Light Mode Enforcement (Anti-Dark Mode) -->
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light">
+
+  <!-- Open Graph & Social Cards -->
+  <meta property="og:type" content="product">
+  <meta property="og:site_name" content="متجر حِلها - Helha">
+  <meta property="og:title" content="شراء المنتجات والعروض الذكية | متجر حِلها (Helha)">
+  <meta property="og:description" content="تسوق أفضل الحلول الذكية والأدوات المبتكرة في مصر مع الدفع عند الاستلام والمعاينة قبل الدفع.">
+  <meta property="og:url" content="https://helha-eg.com/product.html">
+  <meta property="og:image" content="https://helha-eg.com/assets/logo.jpg">
+  <meta property="og:locale" content="ar_EG">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="متجر حِلها - Helha | كل مشكلة ليها حلّها">
+  <meta name="twitter:description" content="أدوات منزلية وحلول مبتكرة تسهل حياتك اليومية مع شحن سريع ومعاينة قبل الدفع.">
+  <meta name="twitter:image" content="https://helha-eg.com/assets/logo.jpg">
+
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
 
   <!-- Google Fonts: Cairo -->
@@ -19,6 +43,34 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="حِلها">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+  <!-- Schema.org Structured Data (JSON-LD) for AI Search & Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "منتجات متجر حِلها الذكية",
+    "image": "https://helha-eg.com/assets/logo.jpg",
+    "description": "حلول منزلية مبتكرة وأدوات ذكية لتسهيل الحياة اليومية بأسعار منافسة ومعاينة كاملة قبل الدفع.",
+    "brand": {
+      "@type": "Brand",
+      "name": "حِلها - Helha"
+    },
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "EGP",
+      "lowPrice": "199",
+      "highPrice": "1499",
+      "offerCount": "50",
+      "availability": "https://schema.org/InStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "متجر حِلها",
+        "url": "https://helha-eg.com"
+      }
+    }
+  }
+  </script>
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
@@ -154,6 +206,16 @@
           </div>
         </div>
 
+        <!-- Mandatory Return Policy Agreement (اجباري قبل الشراء) -->
+        <div class="checkout-agreement-wrap">
+          <label class="checkout-agreement-label">
+            <input type="checkbox" id="order-policy-agree" class="checkout-agreement-checkbox" required>
+            <span>
+              بشراء هذا المنتج فأنت موافق على <a href="return-policy.html" target="_blank" class="checkout-agreement-link">سياسة الاستبدال والاسترجاع</a> <span class="req" style="color:#ef4444;">*</span>
+            </span>
+          </label>
+        </div>
+
         <!-- Big Bottom CTA Button (مطابق للصورة) -->
         <button type="submit" id="btn-bottom-submit" class="btn-buy-now">
           <span>اضغط هنا للشراء</span>
@@ -211,6 +273,30 @@
       </div>
     </div>
   </div>
+
+  <!-- Mobile Bottom App Bar -->
+  <nav class="mobile-bottom-nav">
+    <a href="index.html" class="mobile-nav-item">
+      <span class="nav-icon">🏠</span>
+      <span>الرئيسية</span>
+    </a>
+    <a href="deals.html" class="mobile-nav-item">
+      <span class="nav-icon">🔥</span>
+      <span>العروض</span>
+    </a>
+    <a href="index.html#cart" class="mobile-nav-item">
+      <span class="nav-icon">🛒</span>
+      <span>السلة</span>
+    </a>
+    <a href="track.html" class="mobile-nav-item">
+      <span class="nav-icon">📦</span>
+      <span>تتبع الطلب</span>
+    </a>
+    <a href="contact.html" class="mobile-nav-item">
+      <span class="nav-icon">✉️</span>
+      <span>اتصل بنا</span>
+    </a>
+  </nav>
 
   <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>

@@ -3,7 +3,7 @@
  * Caches essential shell assets and enables WebAPK installation on Android
  */
 
-const CACHE_NAME = "helha-pwa-v1";
+const CACHE_NAME = "helha-pwa-v2";
 
 const STATIC_ASSETS = [
   "./",
@@ -11,6 +11,8 @@ const STATIC_ASSETS = [
   "./product.html",
   "./deals.html",
   "./track.html",
+  "./support.html",
+  "./contact.html",
   "./return-policy.html",
   "./shipping.html",
   "./admin.html",
@@ -19,6 +21,7 @@ const STATIC_ASSETS = [
   "./css/product.css",
   "./css/admin.css",
   "./js/app.js",
+  "./js/product.js",
   "./js/firebase-config.js",
   "./js/telegram.js",
   "./manifest.json",

@@ -722,3 +722,19 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Force light mode override for subpage components */
+@media (prefers-color-scheme: dark) {
+  :root, html, body {
+    color-scheme: light only !important;
+    forced-color-adjust: none !important;
+    background-color: #faf8f5 !important;
+    color: #1e293b !important;
+  }
+  .policy-card, .support-card, .contact-card, .timeline-card,
+  .form-input-contact, .btn-contact-submit, .support-category-card {
+    color-scheme: light only !important;
+    forced-color-adjust: none !important;
+  }
+}
+

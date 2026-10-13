@@ -712,3 +712,19 @@ a {
     padding: 0 1rem;
   }
 }
+
+/* Force light mode in Admin Dashboard */
+@media (prefers-color-scheme: dark) {
+  :root, html, body {
+    color-scheme: light only !important;
+    forced-color-adjust: none !important;
+    background-color: var(--bg-admin) !important;
+    color: var(--text-main) !important;
+  }
+  .panel-card, .login-card, .admin-header, .stat-card,
+  .admin-table, .form-field input, .form-field select, .form-field textarea {
+    color-scheme: light only !important;
+    forced-color-adjust: none !important;
+  }
+}
+

@@ -3,6 +3,8 @@
    ========================================================================== */
 
 :root {
+  color-scheme: light only !important;
+  forced-color-adjust: none !important;
   --primary: #175349;
   --primary-hover: #0f3d35;
   --primary-light: #e8f4f2;
@@ -49,8 +51,10 @@ html {
   direction: rtl;
   text-align: right;
   scroll-behavior: smooth;
-  background-color: var(--bg-page);
-  color: var(--dark);
+  color-scheme: light only !important;
+  forced-color-adjust: none !important;
+  background-color: var(--bg-page) !important;
+  color: var(--dark) !important;
 }
 
 body {
@@ -59,6 +63,10 @@ body {
   flex-direction: column;
   overflow-x: hidden;
   line-height: 1.6;
+  color-scheme: light only !important;
+  forced-color-adjust: none !important;
+  background-color: var(--bg-page) !important;
+  color: var(--dark) !important;
 }
 
 a {
@@ -1655,6 +1663,182 @@ img {
   .pwa-btn-install {
     flex: 1;
     justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   FORCE 100% LIGHT MODE (OVERRIDE ANY OS / MOBILE DARK MODE)
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root, html, body {
+    color-scheme: light only !important;
+    forced-color-adjust: none !important;
+    background-color: #faf8f5 !important;
+    color: #1e293b !important;
+  }
+
+  .site-header, .site-footer, .modal-dialog, .slide-drawer,
+  .product-card, .category-card, .feature-card, .order-card,
+  .form-control, .form-input, .checkout-input, .checkout-select,
+  .checkout-textarea, .panel-card, .settings-box, .pwa-banner-card,
+  .quick-view-box, .success-box, .mobile-bottom-nav {
+    color-scheme: light only !important;
+    forced-color-adjust: none !important;
+  }
+}
+
+/* ==========================================================================
+   CHECKOUT RETURN POLICY AGREEMENT CHECKBOX COMPONENT
+   ========================================================================== */
+.checkout-agreement-wrap {
+  margin: 1.15rem 0 1rem 0;
+  padding: 0.85rem 1rem;
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  border-radius: var(--radius-sm, 8px);
+  transition: var(--transition, all 0.2s ease);
+}
+
+.checkout-agreement-wrap:hover {
+  border-color: #f59e0b;
+}
+
+.checkout-agreement-wrap.has-error {
+  background: #fef2f2;
+  border-color: #f87171;
+  animation: shakeAgreement 0.4s ease;
+}
+
+.checkout-agreement-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--dark, #1e293b);
+  font-weight: 600;
+  user-select: none;
+}
+
+.checkout-agreement-checkbox {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  margin-top: 2px;
+  accent-color: var(--primary, #175349);
+  cursor: pointer;
+}
+
+.checkout-agreement-link {
+  color: var(--primary, #175349);
+  text-decoration: underline;
+  font-weight: 800;
+  transition: color 0.2s ease;
+}
+
+.checkout-agreement-link:hover {
+  color: var(--primary-hover, #0f3d35);
+}
+
+@keyframes shakeAgreement {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* ==========================================================================
+   MOBILE BOTTOM APP NAVIGATION BAR (NATIVE APP EXPERIENCE)
+   ========================================================================== */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 74px !important;
+  }
+
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.07);
+    z-index: 9999;
+    padding: 0 0.5rem;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 100%;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 700;
+    position: relative;
+    transition: all 0.2s ease;
+    gap: 3px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item .nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+
+  .mobile-nav-item:hover,
+  .mobile-nav-item.active {
+    color: var(--primary, #175349);
+  }
+
+  .mobile-nav-item.active .nav-icon {
+    transform: translateY(-2px) scale(1.1);
+  }
+
+  .mobile-nav-item.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 24px;
+    height: 3px;
+    background: var(--primary, #175349);
+    border-radius: 0 0 3px 3px;
+  }
+
+  .mobile-nav-badge {
+    position: absolute;
+    top: 6px;
+    right: 50%;
+    margin-right: -18px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    line-height: 1;
   }
 }
 

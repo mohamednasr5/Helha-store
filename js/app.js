@@ -267,6 +267,11 @@ function updateCartUI() {
   const totalCount = AppState.cart.reduce((sum, item) => sum + item.quantity, 0);
   if (badge) badge.textContent = totalCount;
   if (countSpan) countSpan.textContent = totalCount;
+  const mobBadge = document.getElementById("mobile-cart-badge");
+  if (mobBadge) {
+    mobBadge.textContent = totalCount;
+    mobBadge.style.display = totalCount > 0 ? "flex" : "none";
+  }
 
   const subtotal = getCartSubtotal();
   const isFreeShipping = subtotal >= AppState.freeShippingThreshold && subtotal > 0;
@@ -450,6 +455,18 @@ async function handleCheckoutSubmit(e) {
 
   if (!name || !phone || !address || !city) {
     showToast("يرجى ملء جميع الحقول المطلوبة", "error");
+    return;
+  }
+
+  const policyAgree = document.getElementById("order-policy-agree");
+  const agreementWrap = document.querySelector(".checkout-agreement-wrap");
+  if (policyAgree && !policyAgree.checked) {
+    if (agreementWrap) {
+      agreementWrap.classList.add("has-error");
+      setTimeout(() => agreementWrap.classList.remove("has-error"), 2500);
+    }
+    showToast("يرجى الموافقة على سياسة الاستبدال والاسترجاع قبل تأكيد الشراء!", "error");
+    policyAgree.focus();
     return;
   }
 

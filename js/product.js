@@ -329,6 +329,18 @@ const ProductPage = {
       return;
     }
 
+    const policyAgree = document.getElementById("order-policy-agree");
+    const agreementWrap = document.querySelector(".checkout-agreement-wrap");
+    if (policyAgree && !policyAgree.checked) {
+      if (agreementWrap) {
+        agreementWrap.classList.add("has-error");
+        setTimeout(() => agreementWrap.classList.remove("has-error"), 2500);
+      }
+      alert("يرجى الموافقة على سياسة الاستبدال والاسترجاع قبل تأكيد الشراء!");
+      policyAgree.focus();
+      return;
+    }
+
     const submitBtn = document.getElementById("btn-bottom-submit");
     if (submitBtn) {
       submitBtn.disabled = true;
