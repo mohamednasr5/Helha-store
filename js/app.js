@@ -9,10 +9,10 @@ const AppState = {
   currentCategory: "all",
   searchQuery: "",
   shippingFee: 50,
-  freeShippingThreshold: 500,
+  freeShippingThreshold: 1000,
   shippingSettings: {
     freeShippingEnabled: true,
-    freeShippingThreshold: 500,
+    freeShippingThreshold: 1000,
     mode: "flat",
     flatRate: 50,
     govRates: {}
@@ -418,7 +418,7 @@ function closeQuickView() {
  */
 function calculateCurrentShipping(subtotal, selectedGov) {
   const s = AppState.shippingSettings || {};
-  if (s.freeShippingEnabled !== false && subtotal >= (Number(s.freeShippingThreshold) || 500) && subtotal > 0) {
+  if (s.freeShippingEnabled !== false && subtotal >= (Number(s.freeShippingThreshold) || 1000) && subtotal > 0) {
     return 0;
   }
   if (s.mode === "per_gov" && selectedGov && s.govRates && s.govRates[selectedGov] !== undefined) {

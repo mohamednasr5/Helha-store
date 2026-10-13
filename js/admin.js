@@ -9,7 +9,7 @@ const AdminState = {
   coupons: [],
   shippingSettings: {
     freeShippingEnabled: true,
-    freeShippingThreshold: 500,
+    freeShippingThreshold: 1000,
     mode: "flat",
     flatRate: 50,
     govRates: {}
@@ -1108,7 +1108,7 @@ const DEFAULT_BANNERS = {
   topBar: {
     enabled: true,
     badge: "عرض خاص",
-    text: "🎉 شحن مجاني للطلبات فوق 500 ج.م في جميع المحافظات!",
+    text: "🎉 شحن مجاني للطلبات فوق 1000 ج.م في جميع المحافظات!",
     extra: "• كل مشكلة ليها حلّها مع متجر حِلها"
   },
   hero: {
@@ -1595,7 +1595,7 @@ function initShippingListener() {
     if (data) {
       AdminState.shippingSettings = {
         freeShippingEnabled: data.freeShippingEnabled !== false,
-        freeShippingThreshold: Number(data.freeShippingThreshold) || 500,
+        freeShippingThreshold: Number(data.freeShippingThreshold) || 1000,
         mode: data.mode || "flat",
         flatRate: Number(data.flatRate) || 50,
         govRates: data.govRates || {}
@@ -1613,7 +1613,7 @@ function renderShippingSettings() {
   const govRatesContainer = document.getElementById("gov-rates-list");
 
   if (freeCheck) freeCheck.checked = s.freeShippingEnabled !== false;
-  if (freeThreshold) freeThreshold.value = s.freeShippingThreshold || 500;
+  if (freeThreshold) freeThreshold.value = s.freeShippingThreshold || 1000;
   if (flatRateInput) flatRateInput.value = s.flatRate || 50;
 
   selectShippingMode(s.mode || "flat");
@@ -1690,7 +1690,7 @@ async function saveShippingSettings() {
 
   const payload = {
     freeShippingEnabled: freeCheck ? freeCheck.checked : true,
-    freeShippingThreshold: freeThreshold ? (Number(freeThreshold.value) || 500) : 500,
+    freeShippingThreshold: freeThreshold ? (Number(freeThreshold.value) || 1000) : 1000,
     mode: mode,
     flatRate: flatRateInput ? (Number(flatRateInput.value) || 50) : 50,
     govRates: govRates,
