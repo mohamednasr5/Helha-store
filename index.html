@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حِلها - Helha | كل مشكلة ليها حلّها</title>
+  <meta name="description" content="متجر حِلها - نوفر لك كل الحلول والأدوات الذكية والمنزلية التي تسهل حياتك اليومية بأفضل الأسعار وأسرع توصيل.">
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+
+  <!-- Google Fonts: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- PWA Manifest & Mobile Config -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#175349">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="حِلها">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/product.css">
+</head>
+<body>
+
+  <!-- Announcement Bar -->
+  <aside class="top-bar" id="announcement-bar">
+    <div class="container top-bar-content">
+      <span class="badge-gold" id="announcement-badge">عرض خاص</span>
+      <span id="announcement-text">🎉 شحن مجاني للطلبات فوق 500 ج.م في جميع المحافظات!</span>
+      <span id="announcement-extra">• كل مشكلة ليها حلّها مع متجر <strong>حِلها</strong></span>
+    </div>
+  </aside>
+
+  <!-- Main Navbar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <!-- Brand Logo & Title -->
+      <a href="index.html" class="brand">
+        <img src="assets/logo.jpg" alt="لوجو حِلها - Helha" class="brand-logo">
+        <div class="brand-info">
+          <span class="brand-title">حِلّها <small style="font-size:0.9rem; font-weight:700;">Helha</small></span>
+          <span class="brand-tagline">كل مشكلة ليها حلّها ✨</span>
+        </div>
+      </a>
+
+      <!-- Search Bar -->
+      <div class="search-wrapper">
+        <div class="search-input-group">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="search-input" placeholder="ابحث عن أدوات ذكية، حلول مطبخ، أو أجهزة منزلية..." autocomplete="off">
+          <button id="search-clear-btn" class="search-clear-btn" onclick="clearLiveSearch()" style="display:none;" title="مسح البحث">✕</button>
+        </div>
+        <!-- Live Instant Search Dropdown -->
+        <div id="search-live-dropdown" class="search-live-dropdown" style="display:none;"></div>
+      </div>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <!-- Deals Link -->
+        <a href="deals.html" class="btn-admin-link" style="background:#fef2f2; border-color:#fecaca; color:#ef4444; font-weight:800;" title="عروض التوفير الحصرية">
+          <span>🔥</span>
+          <span>عروض التوفير</span>
+        </a>
+
+        <!-- Track Link -->
+        <a href="track.html" class="btn-admin-link" title="تتبع ومتابعة الطلبات">
+          <span>📦</span>
+          <span>تتبع الطلب</span>
+        </a>
+
+        <!-- PWA Direct Install Button -->
+        <button id="nav-pwa-btn" class="btn-admin-link" onclick="triggerPwaInstall()" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; font-weight:800; cursor:pointer;" title="تثبيت تطبيق متجر حِلها على هاتفك">
+          <span>📲</span>
+          <span>تثبيت التطبيق</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button id="nav-cart-btn" class="btn-icon" title="سلة التسوق" aria-label="سلة التسوق">
+          <span>🛒</span>
+          <span id="cart-badge" class="cart-badge">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Banner Section -->
+    <section class="hero-section" id="hero-section">
+      <div class="container">
+        <div class="hero-banner-card">
+          <div class="hero-img-wrap">
+            <img id="hero-banner-img" src="assets/banner.jpg" alt="غلاف متجر حِلها - وفرنا لك كل الحلول والأدوات اللي تسهل حياتك" class="hero-img">
+          </div>
+          <div class="hero-bottom-bar">
+            <div class="hero-text-content">
+              <h2 id="hero-banner-title">وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡</h2>
+              <p id="hero-banner-subtitle">منتجات ذكية، مبتكرة، ومختارة بعناية لحل مشاكل المنزل والمطبخ والتنظيف اليومية.</p>
+            </div>
+            <div class="hero-actions">
+              <a id="hero-banner-btn" href="#products-section" class="btn-primary">تسوق الحلول الآن 🛍️</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust Badges Strip -->
+    <section class="features-strip">
+      <div class="container">
+        <div class="features-grid">
+          <div class="feature-box">
+            <div class="feature-icon">🚚</div>
+            <div class="feature-info">
+              <h4>شحن سريع ومباشر</h4>
+              <p>توصيل لباب بيتك بجميع المحافظات</p>
+            </div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">💵</div>
+            <div class="feature-info">
+              <h4>الدفع عند الاستلام</h4>
+              <p>عاين منتجك وتأكد منه قبل الدفع</p>
+            </div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">🛡️</div>
+            <div class="feature-info">
+              <h4>ضمان الجودة والاستبدال</h4>
+              <p>إمكانية الاسترجاع والاستبدال خلال 14 يوماً</p>
+            </div>
+          </div>
+          <div class="feature-box">
+            <div class="feature-icon">💬</div>
+            <div class="feature-info">
+              <h4>دعم فني متواصل</h4>
+              <p>خدمة عملاء ومتابعة مستمرة عبر واتساب</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products-section" id="products-section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <h3>أحدث الحلول والمنتجات 🌟</h3>
+            <p>اختر ما يناسبك من تشكيلتنا الذكية لحياة يومية أسهل وأكثر راحة</p>
+          </div>
+
+          <!-- Category Filter Tabs -->
+          <div class="category-tabs">
+            <button class="cat-btn active" data-category="all">⚡ جميع المنتجات</button>
+            <button class="cat-btn" data-category="kitchen">🍳 حلول المطبخ</button>
+            <button class="cat-btn" data-category="cleaning">🧹 أدوات التنظيف</button>
+            <button class="cat-btn" data-category="home">🏠 حلول منزلية</button>
+            <button class="cat-btn" data-category="deals">🔥 عروض التوفير</button>
+          </div>
+        </div>
+
+        <!-- Products Grid Container -->
+        <div id="products-grid" class="products-grid">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Slide-Over Cart Drawer -->
+  <div id="cart-overlay" class="cart-overlay">
+    <div class="cart-drawer">
+      <div class="cart-header">
+        <div class="cart-header-title">
+          <span>🛒</span>
+          <h3>سلة المشتريات (<span id="cart-items-count">0</span>)</h3>
+        </div>
+        <button class="btn-close" onclick="closeCartDrawer()" aria-label="إغلاق السلة">✕</button>
+      </div>
+
+      <!-- Free shipping meter -->
+      <div class="free-shipping-bar">
+        <div id="free-shipping-text">أضف منتجات بقيمة 500 ج.م للحصول على شحن مجاني! 🚚</div>
+        <div class="free-shipping-progress">
+          <div id="free-shipping-progress-fill" class="free-shipping-progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- Cart Items Body -->
+      <div id="cart-drawer-body" class="cart-body">
+        <!-- Cart items injected via JS -->
+      </div>
+
+      <!-- Cart Footer / Summary -->
+      <div class="cart-footer">
+        <div class="cart-summary-line">
+          <span>المجموع الفرعي:</span>
+          <strong id="cart-subtotal">0 ج.م</strong>
+        </div>
+        <div class="cart-summary-line">
+          <span>الشحن:</span>
+          <span id="cart-shipping">35 ج.م</span>
+        </div>
+        <div class="cart-total-line">
+          <span>الإجمالي النهائي:</span>
+          <span id="cart-total">0 ج.م</span>
+        </div>
+        <button class="btn-checkout" onclick="openCheckoutModal()">
+          <span>متابعة الشراء وإتمام الطلب 🚚</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick View Modal -->
+  <div id="quick-view-overlay" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>تفاصيل الحل والمنتج</h3>
+        <button class="btn-close" onclick="closeQuickView()" aria-label="إغلاق">✕</button>
+      </div>
+      <div id="quick-view-body" class="modal-body">
+        <!-- Content injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div id="checkout-overlay" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>🚚 إتمام الطلب وتأكيد التوصيل</h3>
+        <button class="btn-close" onclick="closeCheckoutModal()" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Order Summary Box -->
+        <div id="checkout-order-review" class="order-review-box">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="payment-notice">
+          <span>💡</span>
+          <div>
+            <strong>طريقة الدفع: الدفع عند الاستلام (COD)</strong>
+            <div style="font-size:0.8rem; opacity:0.9;">ادفع براحتك نقداً بعد فحص ومعاينة المنتج عند الاستلام. (الدفع الإلكتروني سيتوفر قريباً).</div>
+          </div>
+        </div>
+
+        <!-- Checkout Form -->
+        <form id="checkout-form">
+          <div class="form-group">
+            <label class="form-label" for="order-customer-name">الاسم بالكامل <span class="req">*</span></label>
+            <input type="text" id="order-customer-name" class="form-control" placeholder="مثال: أحمد محمد علي" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="order-customer-phone">رقم الهاتف (للتوصيل وواتساب) <span class="req">*</span></label>
+              <input type="tel" id="order-customer-phone" class="form-control" placeholder="010XXXXXXXX" dir="ltr" style="text-align:right;" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="order-customer-city">المحافظة / المدينة <span class="req">*</span></label>
+              <input type="text" id="order-customer-city" class="form-control" placeholder="مثال: القاهرة - المعادي" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="order-customer-address">العنوان التفصيلي <span class="req">*</span></label>
+            <input type="text" id="order-customer-address" class="form-control" placeholder="اسم الشارع، رقم العمارة، رقم الشقة، علامة مميزة" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="order-customer-notes">ملاحظات إضافية للتوصيل (اختياري)</label>
+            <textarea id="order-customer-notes" class="form-control" rows="2" placeholder="أي تعليمات إضافية لمندوب الشحن أو موعد مفضل..."></textarea>
+          </div>
+
+          <button type="submit" id="btn-submit-order" class="btn-checkout" style="margin-top: 1rem;">
+            تأكيد الطلب الآن 🚚
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Success Modal -->
+  <div id="success-overlay" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 480px;">
+      <div class="modal-body success-box">
+        <div class="success-icon-wrap">✓</div>
+        <h2 style="font-size: 1.5rem; font-weight:800; color:var(--primary); margin-bottom:0.5rem;">تم استلام طلبك بنجاح! 🎉</h2>
+        <p style="color:var(--gray); font-size:0.95rem;">شكراً لتسوقك من متجر <strong>حِلها</strong>. سيتم مراجعة الطلب وتجهيزه للشحن في أقرب وقت.</p>
+        
+        <div>
+          <span style="font-size:0.85rem; color:var(--dark-soft); display:block; margin-top:1rem;">رقم الطلب الخاص بك:</span>
+          <span id="success-order-code" class="order-code">#HLH-000000</span>
+        </div>
+
+        <p style="font-size:0.85rem; color:var(--gray); margin-bottom:1.5rem;">
+          تم إرسال إشعار فوري لإدارة المتجر، وسيقوم المندوب بالتواصل معك قبل التوصيل للتأكيد.
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:0.6rem;">
+          <a id="success-whatsapp-btn" href="#" target="_blank" class="btn-primary" style="justify-content:center; background:#25D366; color:#ffffff;">
+            💬 تواصل معنا عبر واتساب للمتابعة
+          </a>
+          <button class="btn-outline-white" style="background:#f1f5f9; color:var(--dark); border-color:var(--border);" onclick="closeSuccessModal()">
+            العودة للتسوق في المتجر
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h4>حِلّها - Helha</h4>
+          <p>
+            متجرك الأول للحلول الذكية والأدوات المبتكرة. نهدف لتسهيل حياتك اليومية وحل المشاكل المنزلية بأفضل جودة وأنسب سعر.
+          </p>
+          <div style="margin-top: 1rem; color: var(--secondary); font-weight: 700;">
+            كل مشكلة ليها حلّها ✨
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h5>أقسام المتجر</h5>
+          <ul class="footer-links">
+            <li><a href="index.html?cat=kitchen">حلول المطبخ</a></li>
+            <li><a href="index.html?cat=cleaning">أدوات التنظيف</a></li>
+            <li><a href="index.html?cat=home">حلول منزلية</a></li>
+            <li><a href="deals.html">عروض التوفير</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>خدمات العملاء</h5>
+          <ul class="footer-links">
+            <li><a href="track.html">تتبع ومتابعة الطلبات</a></li>
+            <li><a href="return-policy.html">سياسة الاسترجاع والاستبدال</a></li>
+            <li><a href="shipping.html">الشحن والتوصيل</a></li>
+            <li><a href="https://wa.me/201000000000" target="_blank">الدعم الفني عبر واتساب</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>طرق الدفع والتوصيل</h5>
+          <p style="font-size:0.85rem; color:rgba(255,255,255,0.75); margin-bottom:0.75rem;">
+            💵 الدفع نقدياً عند الاستلام بعد المعاينة.<br>
+            🚚 شحن سريع ومغطى لجميع أنحاء الجمهورية.
+          </p>
+          <div style="font-size:0.85rem; color:var(--secondary); font-weight:700;">
+            دعم فني واستفسارات: 24/7 عبر واتساب
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>جميع الحقوق محفوظة © متجر حِلها (Helha) 2026</div>
+        <div>برمجة وتطوير المهندس <a href="https://www.facebook.com/en.mohamed.nasr" target="_blank" rel="noopener noreferrer" style="color: var(--secondary); font-weight: 700; text-decoration: underline;">محمد حماد</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Firebase Compat Scripts (No build step required for GitHub Pages) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+  <!-- Project Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/telegram.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/pwa.js"></script>
+</body>
+</html>

@@ -1,0 +1,482 @@
+/* ==========================================================================
+   Product Direct Checkout & Landing Page Stylesheet
+   Matches exact COD Single-Product Landing Page design
+   ========================================================================== */
+
+:root {
+  --primary-btn: #8c5b3e; /* Warm rich brown/caramel tone as in screenshot */
+  --primary-btn-hover: #73482e;
+  --theme-teal: #175349;
+  --theme-gold: #f3a824;
+  --theme-coral: #e85d5d;
+  --bg-page: #ffffff;
+  --border-light: #e5e7eb;
+  --border-active: #8c5b3e;
+  --text-dark: #1f2937;
+  --text-muted: #6b7280;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+}
+
+body.product-page {
+  background-color: #fbfbfb;
+  color: var(--text-dark);
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.6;
+}
+
+.product-container {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 1.25rem 1.25rem 3rem;
+  box-shadow: 0 0 25px rgba(0,0,0,0.04);
+}
+
+/* Header & Top Bar */
+.product-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--theme-teal);
+}
+
+.favorite-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  color: #9ca3af;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.favorite-btn.active {
+  color: #ef4444;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+/* Product Hero Gallery */
+.product-hero-image {
+  width: 100%;
+  border-radius: var(--radius-md);
+  max-height: 420px;
+  object-fit: cover;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--border-light);
+}
+
+/* Title & Rating */
+.prod-main-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1.3;
+  margin-bottom: 0.35rem;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #f59e0b;
+  margin-bottom: 0.75rem;
+}
+
+.rating-stars {
+  font-size: 1rem;
+}
+
+.rating-count {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* Price Row */
+.prod-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.main-price {
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: var(--text-dark);
+}
+
+.main-price small {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-right: 3px;
+}
+
+.original-price {
+  font-size: 1.05rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.discount-badge {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+/* Big CTA Buttons */
+.btn-buy-now {
+  width: 100%;
+  background: var(--primary-btn);
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  padding: 0.95rem 1.5rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(140, 91, 62, 0.35);
+}
+
+.btn-buy-now:hover {
+  background: var(--primary-btn-hover);
+  transform: translateY(-1px);
+}
+
+.prod-meta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  margin: 0.85rem 0 1.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.meta-action-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.meta-action-item:hover {
+  color: var(--primary-btn);
+}
+
+/* Sales Copy Section */
+.sales-pitch-box {
+  border-top: 1px solid var(--border-light);
+  padding-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.sales-pitch-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 0.75rem;
+}
+
+.sales-pitch-intro {
+  font-size: 0.92rem;
+  color: #4b5563;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.section-subheading {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 1.25rem 0 0.65rem;
+}
+
+.benefits-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.benefits-list li {
+  font-size: 0.88rem;
+  color: #374151;
+  position: relative;
+  padding-right: 1.25rem;
+  line-height: 1.6;
+}
+
+.benefits-list li::before {
+  content: '•';
+  color: var(--primary-btn);
+  font-weight: 900;
+  font-size: 1.2rem;
+  position: absolute;
+  right: 0;
+  top: -2px;
+}
+
+.specs-box {
+  background: #f9fafb;
+  border-right: 3px solid var(--primary-btn);
+  padding: 0.85rem 1rem;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  color: #4b5563;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+.closing-pitch {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  text-align: center;
+  margin: 1rem 0 1.5rem;
+}
+
+/* ==========================================================================
+   Offers / Bundles Selector (مطابق للصورة)
+   ========================================================================== */
+.offers-section {
+  margin-bottom: 2rem;
+}
+
+.offers-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.offers-header h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.offers-header p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.offers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.offer-card {
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.offer-card:hover {
+  border-color: #cbd5e1;
+}
+
+.offer-card.selected {
+  border-color: var(--primary-btn);
+  background: #fffbf9;
+  box-shadow: 0 0 0 1px var(--primary-btn);
+}
+
+.offer-radio-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.custom-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.offer-card.selected .custom-radio {
+  border-color: #0284c7;
+  background: #0284c7;
+}
+
+.custom-radio-inner {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.offer-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.offer-meta-details {
+  text-align: left;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.offer-original-price {
+  text-decoration: line-through;
+  margin-right: 4px;
+}
+
+/* ==========================================================================
+   Embedded Direct Checkout Form (يرجى إدخال معلوماتك لإكمال الطلب)
+   ========================================================================== */
+.order-form-container {
+  border-top: 1px solid var(--border-light);
+  padding-top: 1.75rem;
+}
+
+.form-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.checkout-input-group {
+  margin-bottom: 1rem;
+}
+
+.checkout-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 0.35rem;
+}
+
+.checkout-input, .checkout-select, .checkout-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.checkout-input:focus, .checkout-select:focus, .checkout-textarea:focus {
+  border-color: var(--primary-btn);
+  box-shadow: 0 0 0 3px rgba(140, 91, 62, 0.12);
+}
+
+/* Coupon Row */
+.coupon-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.btn-apply-coupon {
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: #f9fafb;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-apply-coupon:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+/* Final Summary */
+.checkout-summary-box {
+  background: #fafafa;
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+}
+
+.summary-row.total-row {
+  border-top: 1px dashed var(--border-light);
+  padding-top: 0.65rem;
+  margin-top: 0.65rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text-dark);
+}
+
+/* Mobile Sticky Bottom CTA */
+.sticky-bottom-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  padding: 0.75rem 1.25rem;
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.08);
+  z-index: 1000;
+  border-top: 1px solid var(--border-light);
+}
+
+@media (max-width: 640px) {
+  .product-container {
+    padding: 1rem 1rem 4rem;
+  }
+}
