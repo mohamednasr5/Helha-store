@@ -208,21 +208,64 @@
 
   <!-- Main Content -->
   <main>
-    <!-- Hero Banner Section -->
+    <!-- Hero Banner Carousel Section -->
     <section class="hero-section" id="hero-section">
       <div class="container">
-        <div class="hero-banner-card">
-          <div class="hero-img-wrap">
-            <img id="hero-banner-img" src="assets/banner.jpg" alt="غلاف متجر حِلها - وفرنا لك كل الحلول والأدوات اللي تسهل حياتك" class="hero-img">
+        <div class="hero-carousel-card" id="hero-carousel-container" aria-label="بانرات وعروض متجر حلها الرئيسية">
+          <!-- Slider Track -->
+          <div class="hero-slider-track" id="hero-slider-track">
+            <!-- Slide 1: Main Solutions Banner -->
+            <div class="hero-slide active" data-index="0">
+              <a href="#products-section" class="hero-slide-link" title="وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك">
+                <div class="hero-slide-img-wrap">
+                  <img src="assets/banners/banner-main.jpg" alt="غلاف متجر حِلها - وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك" class="hero-slide-img" loading="eager">
+                  <div class="hero-slide-sheen"></div>
+                </div>
+              </a>
+            </div>
+            <!-- Slide 2: Fast Shipping Banner -->
+            <div class="hero-slide" data-index="1">
+              <a href="shipping.html" class="hero-slide-link" title="شحن وتوصيل سريع بجميع محافظات مصر">
+                <div class="hero-slide-img-wrap">
+                  <img src="assets/banners/banner-shipping.jpg" alt="شحن وتوصيل سريع لباب بيتك بجميع المحافظات في مصر" class="hero-slide-img" loading="lazy">
+                  <div class="hero-slide-sheen"></div>
+                </div>
+              </a>
+            </div>
+            <!-- Slide 3: Cash On Delivery Banner -->
+            <div class="hero-slide" data-index="2">
+              <a href="#products-section" class="hero-slide-link" title="الدفع عند الاستلام بعد المعاينة والفحص الكامل">
+                <div class="hero-slide-img-wrap">
+                  <img src="assets/banners/banner-cod.jpg" alt="الدفع عند الاستلام - عاين منتجك وافحصه بالكامل قبل الدفع" class="hero-slide-img" loading="lazy">
+                  <div class="hero-slide-sheen"></div>
+                </div>
+              </a>
+            </div>
+            <!-- Slide 4: Customer Support Banner -->
+            <div class="hero-slide" data-index="3">
+              <a href="mailto:Hellha.eg@gmail.com" class="hero-slide-link" title="دعم واستجابة سريعة عبر البريد">
+                <div class="hero-slide-img-wrap">
+                  <img src="assets/banners/banner-support.jpg" alt="دعم واستجابة سريعة - متابعة رسمية عبر البريد Hellha.eg@gmail.com" class="hero-slide-img" loading="lazy">
+                  <div class="hero-slide-sheen"></div>
+                </div>
+              </a>
+            </div>
           </div>
-          <div class="hero-bottom-bar">
-            <div class="hero-text-content">
-              <h2 id="hero-banner-title">شراء أدوات منزلية أونلاين في مصر - كل مشكلة ليها حِلها 💡</h2>
-              <p id="hero-banner-subtitle">أفضل منتجات منزلية عملية، وحلول ذكية لتسهيل الأعمال المنزلية، وأدوات منزلية بأسعار مناسبة في مصر مع الدفع عند الاستلام بعد المعاينة.</p>
-            </div>
-            <div class="hero-actions">
-              <a id="hero-banner-btn" href="#products-section" class="btn-primary">تسوق منتجات منزلية أونلاين 🛍️</a>
-            </div>
+
+          <!-- Navigation Controls -->
+          <button type="button" class="hero-nav-btn prev-btn" id="hero-prev-btn" aria-label="البانر السابق">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+          <button type="button" class="hero-nav-btn next-btn" id="hero-next-btn" aria-label="البانر التالي">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+
+          <!-- Slide Dots & Progress -->
+          <div class="hero-dots-container" id="hero-slider-dots">
+            <button type="button" class="hero-dot active" data-slide="0" aria-label="الانتقال للبانر 1"></button>
+            <button type="button" class="hero-dot" data-slide="1" aria-label="الانتقال للبانر 2"></button>
+            <button type="button" class="hero-dot" data-slide="2" aria-label="الانتقال للبانر 3"></button>
+            <button type="button" class="hero-dot" data-slide="3" aria-label="الانتقال للبانر 4"></button>
           </div>
         </div>
       </div>
@@ -232,29 +275,29 @@
     <section class="features-strip">
       <div class="container">
         <div class="features-grid">
-          <div class="feature-box">
-            <div class="feature-icon">🚚</div>
+          <div class="feature-box feature-box-truck">
+            <div class="feature-icon icon-anim-truck">🚚</div>
             <div class="feature-info">
               <h4>شحن وتوصيل سريع</h4>
               <p>توصيل لباب بيتك بجميع المحافظات مع التوصيل في مصر</p>
             </div>
           </div>
-          <div class="feature-box">
-            <div class="feature-icon">💵</div>
+          <div class="feature-box feature-box-cash">
+            <div class="feature-icon icon-anim-cash">💵</div>
             <div class="feature-info">
               <h4>الدفع عند الاستلام</h4>
               <p>عاين منتجك وافحصه بالكامل قبل الدفع</p>
             </div>
           </div>
-          <div class="feature-box">
-            <div class="feature-icon">🛡️</div>
+          <div class="feature-box feature-box-shield">
+            <div class="feature-icon icon-anim-shield">🛡️</div>
             <div class="feature-info">
               <h4>منتجات مبتكرة للمنزل</h4>
               <p>حلول ذكية وجودة أصلية لراحة تدوم</p>
             </div>
           </div>
-          <div class="feature-box">
-            <div class="feature-icon">✉️</div>
+          <div class="feature-box feature-box-support">
+            <div class="feature-icon icon-anim-support">✉️</div>
             <div class="feature-info">
               <h4>دعم واستجابة سريعة</h4>
               <p>متابعة رسمية عبر البريد: Hellha.eg@gmail.com</p>

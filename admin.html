@@ -598,67 +598,59 @@
                   </div>
                 </div>
 
-                <!-- 2. البانر الرئيسي للمتجر -->
+                <!-- 2. سلايدر البانرات الرئيسي المتعدد للمتجر -->
                 <div class="settings-box">
-                  <h4><span>🖼️</span> البانر الإعلاني الرئيسي (Hero Banner)</h4>
-                  <p>الصورة والعناوين الكبيرة في واجهة المتجر للترحيب بالزوار وتقديم هوية حِلها.</p>
-
-                  <div class="form-field">
-                    <label class="switch-label">
-                      <span class="switch-toggle">
-                        <input type="checkbox" id="banner-hero-enabled" checked onchange="updateBannerLivePreviews()">
-                        <span class="switch-slider"></span>
-                      </span>
-                      <span>تفعيل وإظهار البانر الرئيسي في المتجر</span>
-                    </label>
+                  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.4rem;">
+                    <h4><span>🖼️</span> سلايدر البانرات الإعلانية الرئيسي (Hero Carousel)</h4>
+                    <span style="font-size:0.75rem; background:#ecfdf5; color:#15803d; border:1px solid #bbf7d0; padding:2px 8px; border-radius:12px; font-weight:700;">دعم عدد لا نهائي من البانرات ⚡</span>
                   </div>
+                  <p>أضف أي عدد من البانرات والعروض مع التبديل التلقائي، والتحكم في الترتيب وروابط التوجيه عند النقر.</p>
 
-                  <!-- Hero Image Uploader & URL -->
-                  <div class="form-field">
-                    <label>صورة البانر (رفع مباشر إلى Cloudflare R2 أو رابط خارجي):</label>
-                    <div class="upload-dropzone" onclick="document.getElementById('banner-hero-file').click()" style="padding:1rem;">
-                      <input type="file" id="banner-hero-file" accept="image/*" style="display:none;" onchange="handleHeroBannerUpload(event)">
-                      <div class="upload-icon" style="font-size:1.8rem; margin-bottom:0.25rem;">☁️</div>
-                      <p style="font-size:0.85rem; margin-bottom:0.25rem;"><strong>اضغط لاختيار صورة من جهازك</strong> (تُرفع إلى R2 تلقائياً)</p>
-                      <div id="banner-upload-status" class="upload-status"></div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem; background:#f8fafc; padding:1rem; border-radius:10px; border:1px solid #e2e8f0;">
+                    <div class="form-field" style="margin:0;">
+                      <label class="switch-label">
+                        <span class="switch-toggle">
+                          <input type="checkbox" id="banner-hero-enabled" checked onchange="updateBannerLivePreviews()">
+                          <span class="switch-slider"></span>
+                        </span>
+                        <span style="font-weight:700;">تفعيل وإظهار سلايدر البانرات في المتجر</span>
+                      </label>
                     </div>
-                    <div style="margin-top:0.5rem;">
-                      <input type="url" id="banner-hero-img-url" placeholder="رابط صورة البانر (مثال: assets/banner.jpg أو رابط خارجي)" value="assets/banner.jpg" oninput="updateBannerLivePreviews()">
-                    </div>
-                  </div>
 
-                  <div class="form-field">
-                    <label for="banner-hero-title">عنوان البانر الرئيسي:</label>
-                    <input type="text" id="banner-hero-title" placeholder="وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡" value="وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡" oninput="updateBannerLivePreviews()">
-                  </div>
-
-                  <div class="form-field">
-                    <label for="banner-hero-subtitle">الوصف الفرعي للبانر:</label>
-                    <textarea id="banner-hero-subtitle" rows="2" placeholder="منتجات ذكية، مبتكرة، ومختارة بعناية لحل مشاكل المنزل والمطبخ والتنظيف اليومية." oninput="updateBannerLivePreviews()">منتجات ذكية، مبتكرة، ومختارة بعناية لحل مشاكل المنزل والمطبخ والتنظيف اليومية.</textarea>
-                  </div>
-
-                  <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
-                    <div class="form-field">
-                      <label for="banner-hero-btn-text">نص زر الإجراء (CTA):</label>
-                      <input type="text" id="banner-hero-btn-text" placeholder="تسوق الحلول الآن 🛍️" value="تسوق الحلول الآن 🛍️" oninput="updateBannerLivePreviews()">
-                    </div>
-                    <div class="form-field">
-                      <label for="banner-hero-btn-link">رابط زر الإجراء:</label>
-                      <input type="text" id="banner-hero-btn-link" placeholder="#products-section" value="#products-section">
+                    <div class="form-field" style="margin:0;">
+                      <label for="banner-hero-interval" style="font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:0.25rem; display:block;">سرعة التبديل التلقائي للبانرات: ⏱️</label>
+                      <select id="banner-hero-interval" onchange="updateBannerLivePreviews()" style="width:100%; padding:0.45rem 0.75rem; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem; background:#fff;">
+                        <option value="3">سريع جداً (3 ثوانٍ)</option>
+                        <option value="4.5" selected>انسيابي ومثالي (4.5 ثوانٍ)</option>
+                        <option value="6">هادئ (6 ثوانٍ)</option>
+                        <option value="8">بطيء (8 ثوانٍ)</option>
+                      </select>
                     </div>
                   </div>
 
-                  <!-- Live Preview of Hero Banner -->
+                  <!-- Container for Dynamic Banner Items -->
+                  <div style="margin-bottom:1rem;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+                      <label style="font-weight:800; font-size:0.92rem; color:#1e293b;">قائمة بانرات السلايدر النشطة:</label>
+                      <button type="button" class="btn-admin-action btn-add" style="padding:0.4rem 0.9rem; font-size:0.82rem;" onclick="addNewHeroBanner()">
+                        + إضافة بانر جديد ➕
+                      </button>
+                    </div>
+                    <div id="hero-banners-list-container">
+                      <!-- Rendered dynamically by renderHeroBannersManager() -->
+                    </div>
+                  </div>
+
+                  <!-- Live Preview of Carousel -->
                   <div style="margin-top:1.5rem;">
-                    <label style="font-weight:700; font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.4rem;">معاينة فورية للبانر الرئيسي:</label>
-                    <div id="preview-hero-container" class="preview-hero-card">
-                      <img id="preview-hero-img" src="assets/banner.jpg" alt="معاينة البانر" style="width:100%; max-height:160px; object-fit:contain; background:#f8fafc; display:block;" onerror="this.src='assets/banner.jpg'">
-                      <div style="padding:0.85rem; background:#fff; border-top:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
-                        <div style="flex:1; min-width:200px;">
-                          <h4 id="preview-hero-title" style="font-size:0.92rem; color:#175349; margin-bottom:0.2rem;">وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡</h4>
-                          <p id="preview-hero-subtitle" style="font-size:0.75rem; color:#64748b; margin:0;">منتجات ذكية، مبتكرة، ومختارة بعناية لحل مشاكل المنزل والمطبخ...</p>
-                        </div>
-                        <span id="preview-hero-btn" style="background:#175349; color:#fff; font-size:0.78rem; font-weight:700; padding:0.4rem 0.8rem; border-radius:6px; white-space:nowrap;">تسوق الحلول الآن 🛍️</span>
+                    <label style="font-weight:700; font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.4rem;">معاينة فورية لسلايدر البانرات:</label>
+                    <div id="preview-hero-container" class="preview-hero-card" style="border-radius:10px; overflow:hidden; border:1px solid #cbd5e1; background:#f8fafc; position:relative;">
+                      <div id="preview-carousel-slider" style="position:relative; width:100%; aspect-ratio:16/7.5; max-height:220px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f1f5f9;">
+                        <img id="preview-hero-img" src="assets/banners/banner-main.jpg" alt="معاينة البانر" style="width:100%; height:100%; object-fit:contain; display:block;" onerror="this.src='assets/banner.jpg'">
+                      </div>
+                      <div style="padding:0.6rem 0.9rem; background:#fff; border-top:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                        <span id="preview-hero-title" style="font-size:0.85rem; color:#175349; font-weight:700;">وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡</span>
+                        <span id="preview-hero-counter" style="background:#e2e8f0; color:#475569; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:10px;">1 من 4</span>
                       </div>
                     </div>
                   </div>

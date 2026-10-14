@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   trackVisitor();
   setupEventListeners();
   updateCartUI();
+  initHeroBannerCarousel();
   initBannersListener();
   initStoreCategories();
   initStoreShippingListener();
@@ -1289,9 +1290,228 @@ function scrollToProductsSection() {
 
 /**
  * ============================================================================
- * 8. Real-time Banner & Announcement Synchronization
+ * 8. Real-time Multi-Banner Carousel & Announcements Synchronization
  * ============================================================================
  */
+const DEFAULT_HERO_BANNERS = [
+  {
+    image: "assets/banners/banner-main.jpg",
+    title: "وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡",
+    link: "#products-section",
+    enabled: true
+  },
+  {
+    image: "assets/banners/banner-shipping.jpg",
+    title: "شحن وتوصيل سريع لباب بيتك بجميع المحافظات 🚚",
+    link: "shipping.html",
+    enabled: true
+  },
+  {
+    image: "assets/banners/banner-cod.jpg",
+    title: "الدفع عند الاستلام - عاين منتجك وافحصه بالكامل قبل الدفع 💵",
+    link: "#products-section",
+    enabled: true
+  },
+  {
+    image: "assets/banners/banner-support.jpg",
+    title: "دعم واستجابة سريعة - تواصل معنا عبر البريد Hellha.eg@gmail.com ✉️",
+    link: "mailto:Hellha.eg@gmail.com",
+    enabled: true
+  }
+];
+
+let heroBannerState = {
+  currentIndex: 0,
+  banners: [...DEFAULT_HERO_BANNERS],
+  timer: null,
+  interval: 4500,
+  isPaused: false,
+  touchStartX: 0,
+  touchEndX: 0
+};
+
+function safeBannerText(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function renderHeroBannerCarousel(bannersList) {
+  const container = document.getElementById("hero-carousel-container");
+  const track = document.getElementById("hero-slider-track");
+  const dotsContainer = document.getElementById("hero-slider-dots");
+  if (!container || !track) return;
+
+  const validBanners = (bannersList && Array.isArray(bannersList) && bannersList.length > 0)
+    ? bannersList.filter(b => b && b.enabled !== false && b.image)
+    : [...DEFAULT_HERO_BANNERS];
+
+  heroBannerState.banners = validBanners.length > 0 ? validBanners : [...DEFAULT_HERO_BANNERS];
+  heroBannerState.currentIndex = 0;
+
+  // Render slides dynamically
+  track.innerHTML = heroBannerState.banners.map((b, idx) => `
+    <div class="hero-slide ${idx === 0 ? "active" : ""}" data-index="${idx}">
+      <a href="${b.link || "#products-section"}" class="hero-slide-link" title="${safeBannerText(b.title || "متجر حلها")}">
+        <div class="hero-slide-img-wrap">
+          <img src="${b.image}" alt="${safeBannerText(b.title || "بانر متجر حلها")}" class="hero-slide-img" loading="${idx === 0 ? "eager" : "lazy"}" onerror="this.src='assets/banner.jpg'">
+          <div class="hero-slide-sheen"></div>
+        </div>
+      </a>
+    </div>
+  `).join("");
+
+  // Render dots
+  if (dotsContainer) {
+    if (heroBannerState.banners.length <= 1) {
+      dotsContainer.style.display = "none";
+    } else {
+      dotsContainer.style.display = "flex";
+      dotsContainer.innerHTML = heroBannerState.banners.map((_, idx) => `
+        <button type="button" class="hero-dot ${idx === 0 ? "active" : ""}" data-slide="${idx}" aria-label="الانتقال للبانر ${idx + 1}"></button>
+      `).join("");
+
+      dotsContainer.querySelectorAll(".hero-dot").forEach(dot => {
+        dot.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const targetIndex = parseInt(dot.getAttribute("data-slide"), 10);
+          goToHeroSlide(targetIndex);
+          restartHeroAutoTimer();
+        });
+      });
+    }
+  }
+
+  // Prev / Next button visibility
+  const prevBtn = document.getElementById("hero-prev-btn");
+  const nextBtn = document.getElementById("hero-next-btn");
+  if (prevBtn && nextBtn) {
+    if (heroBannerState.banners.length <= 1) {
+      prevBtn.style.display = "none";
+      nextBtn.style.display = "none";
+    } else {
+      prevBtn.style.display = "flex";
+      nextBtn.style.display = "flex";
+    }
+  }
+
+  startHeroAutoTimer();
+}
+
+function goToHeroSlide(index) {
+  const slides = document.querySelectorAll("#hero-slider-track .hero-slide");
+  const dots = document.querySelectorAll("#hero-slider-dots .hero-dot");
+  if (!slides.length) return;
+
+  const total = slides.length;
+  heroBannerState.currentIndex = ((index % total) + total) % total;
+
+  slides.forEach((slide, idx) => {
+    slide.classList.toggle("active", idx === heroBannerState.currentIndex);
+  });
+
+  dots.forEach((dot, idx) => {
+    dot.classList.toggle("active", idx === heroBannerState.currentIndex);
+  });
+}
+
+function nextHeroSlide() {
+  goToHeroSlide(heroBannerState.currentIndex + 1);
+}
+
+function prevHeroSlide() {
+  goToHeroSlide(heroBannerState.currentIndex - 1);
+}
+
+function startHeroAutoTimer() {
+  stopHeroAutoTimer();
+  if (heroBannerState.banners.length <= 1) return;
+
+  heroBannerState.timer = setInterval(() => {
+    if (!heroBannerState.isPaused) {
+      nextHeroSlide();
+    }
+  }, heroBannerState.interval);
+}
+
+function stopHeroAutoTimer() {
+  if (heroBannerState.timer) {
+    clearInterval(heroBannerState.timer);
+    heroBannerState.timer = null;
+  }
+}
+
+function restartHeroAutoTimer() {
+  startHeroAutoTimer();
+}
+
+function initHeroBannerCarousel() {
+  const container = document.getElementById("hero-carousel-container");
+  if (!container) return;
+
+  // Initialize slides and dots
+  renderHeroBannerCarousel(heroBannerState.banners);
+
+  // Nav buttons
+  const prevBtn = document.getElementById("hero-prev-btn");
+  const nextBtn = document.getElementById("hero-next-btn");
+  if (prevBtn) {
+    prevBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      prevHeroSlide();
+      restartHeroAutoTimer();
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      nextHeroSlide();
+      restartHeroAutoTimer();
+    });
+  }
+
+  // Hover pause
+  container.addEventListener("mouseenter", () => {
+    heroBannerState.isPaused = true;
+  });
+  container.addEventListener("mouseleave", () => {
+    heroBannerState.isPaused = false;
+  });
+
+  // Touch swipe support for mobile
+  container.addEventListener("touchstart", (e) => {
+    heroBannerState.touchStartX = e.changedTouches[0].screenX;
+    heroBannerState.isPaused = true;
+  }, { passive: true });
+
+  container.addEventListener("touchend", (e) => {
+    heroBannerState.touchEndX = e.changedTouches[0].screenX;
+    const diff = heroBannerState.touchEndX - heroBannerState.touchStartX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        // Swiped right (in RTL brings previous/next)
+        prevHeroSlide();
+      } else {
+        // Swiped left
+        nextHeroSlide();
+      }
+      restartHeroAutoTimer();
+    }
+    setTimeout(() => {
+      heroBannerState.isPaused = false;
+    }, 1500);
+  }, { passive: true });
+
+  // Pause when page is hidden/inactive tab
+  document.addEventListener("visibilitychange", () => {
+    heroBannerState.isPaused = document.hidden;
+  });
+}
+
 function initBannersListener() {
   if (typeof db === "undefined" || !db) return;
 
@@ -1320,25 +1540,30 @@ function initBannersListener() {
       }
     }
 
-    // 2. Hero Banner
-    const hero = banners.hero;
+    // 2. Hero Multi-Banner Carousel Synchronization
     const heroSection = document.getElementById("hero-section");
-    const heroImg = document.getElementById("hero-banner-img");
-    const heroTitle = document.getElementById("hero-banner-title");
-    const heroSub = document.getElementById("hero-banner-subtitle");
-    const heroBtn = document.getElementById("hero-banner-btn");
-
-    if (heroSection && hero) {
-      if (hero.enabled === false) {
+    if (heroSection) {
+      if (banners.hero && banners.hero.enabled === false) {
         heroSection.style.display = "none";
+        stopHeroAutoTimer();
       } else {
         heroSection.style.display = "";
-        if (heroImg && hero.image) heroImg.src = hero.image;
-        if (heroTitle && hero.title !== undefined) heroTitle.textContent = hero.title;
-        if (heroSub && hero.subtitle !== undefined) heroSub.textContent = hero.subtitle;
-        if (heroBtn) {
-          if (hero.btnText !== undefined) heroBtn.textContent = hero.btnText;
-          if (hero.btnLink !== undefined) heroBtn.href = hero.btnLink;
+
+        if (banners.heroInterval && !isNaN(banners.heroInterval)) {
+          heroBannerState.interval = parseInt(banners.heroInterval, 10) * 1000;
+        }
+
+        if (Array.isArray(banners.heroList) && banners.heroList.length > 0) {
+          renderHeroBannerCarousel(banners.heroList);
+        } else if (banners.hero && banners.hero.image) {
+          // Backward compatibility if single hero banner was saved
+          const singleList = [{
+            image: banners.hero.image,
+            title: banners.hero.title || "",
+            link: banners.hero.btnLink || "#products-section",
+            enabled: true
+          }];
+          renderHeroBannerCarousel(singleList);
         }
       }
     }

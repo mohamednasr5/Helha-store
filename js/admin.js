@@ -23,6 +23,7 @@ const AdminState = {
   currentOrderFilter: "all",
   editingProductId: null,
   currentProductImages: [],
+  heroBannersList: [],
   workerUrl: "https://spyone.nonm1724.workers.dev",
   r2PublicUrl: "https://pub-a9759aa27af1490f9ac3ee12ed967379.r2.dev"
 };
@@ -1254,8 +1255,35 @@ function setupSettingsHandlers() {
 }
 
 /**
- * 7b. Banner & Announcement Management
+ * 7b. Banner & Announcement Management (Multi-Banner Carousel & Top Bar)
  */
+const DEFAULT_HERO_BANNERS_LIST = [
+  {
+    image: "assets/banners/banner-main.jpg",
+    title: "وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡",
+    link: "#products-section",
+    enabled: true
+  },
+  {
+    image: "assets/banners/banner-shipping.jpg",
+    title: "شحن وتوصيل سريع لباب بيتك بجميع المحافظات 🚚",
+    link: "shipping.html",
+    enabled: true
+  },
+  {
+    image: "assets/banners/banner-cod.jpg",
+    title: "الدفع عند الاستلام - عاين منتجك وافحصه بالكامل قبل الدفع 💵",
+    link: "#products-section",
+    enabled: true
+  },
+  {
+    image: "assets/banners/banner-support.jpg",
+    title: "دعم واستجابة سريعة - تواصل معنا عبر البريد Hellha.eg@gmail.com ✉️",
+    link: "mailto:Hellha.eg@gmail.com",
+    enabled: true
+  }
+];
+
 const DEFAULT_BANNERS = {
   topBar: {
     enabled: true,
@@ -1265,12 +1293,14 @@ const DEFAULT_BANNERS = {
   },
   hero: {
     enabled: true,
-    image: "assets/banner.jpg",
+    image: "assets/banners/banner-main.jpg",
     title: "وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡",
     subtitle: "منتجات ذكية، مبتكرة، ومختارة بعناية لحل مشاكل المنزل والمطبخ والتنظيف اليومية.",
     btnText: "تسوق الحلول الآن 🛍️",
     btnLink: "#products-section"
-  }
+  },
+  heroInterval: 4.5,
+  heroList: [...DEFAULT_HERO_BANNERS_LIST]
 };
 
 async function loadBannerSettings() {
@@ -1295,30 +1325,195 @@ async function loadBannerSettings() {
     if (topText) topText.value = topBar.text !== undefined ? topBar.text : DEFAULT_BANNERS.topBar.text;
     if (topExtra) topExtra.value = topBar.extra !== undefined ? topBar.extra : DEFAULT_BANNERS.topBar.extra;
 
-    // Populate Hero Banner
-    const hero = banners.hero || DEFAULT_BANNERS.hero;
+    // Populate Hero Carousel Settings
     const heroEnabled = document.getElementById("banner-hero-enabled");
-    const heroImgUrl = document.getElementById("banner-hero-img-url");
-    const heroTitle = document.getElementById("banner-hero-title");
-    const heroSub = document.getElementById("banner-hero-subtitle");
-    const heroBtnText = document.getElementById("banner-hero-btn-text");
-    const heroBtnLink = document.getElementById("banner-hero-btn-link");
+    if (heroEnabled) {
+      heroEnabled.checked = (banners.hero?.enabled !== false);
+    }
 
-    if (heroEnabled) heroEnabled.checked = hero.enabled !== false;
-    if (heroImgUrl) heroImgUrl.value = hero.image || DEFAULT_BANNERS.hero.image;
-    if (heroTitle) heroTitle.value = hero.title !== undefined ? hero.title : DEFAULT_BANNERS.hero.title;
-    if (heroSub) heroSub.value = hero.subtitle !== undefined ? hero.subtitle : DEFAULT_BANNERS.hero.subtitle;
-    if (heroBtnText) heroBtnText.value = hero.btnText !== undefined ? hero.btnText : DEFAULT_BANNERS.hero.btnText;
-    if (heroBtnLink) heroBtnLink.value = hero.btnLink !== undefined ? hero.btnLink : DEFAULT_BANNERS.hero.btnLink;
+    const heroInterval = document.getElementById("banner-hero-interval");
+    if (heroInterval && banners.heroInterval) {
+      heroInterval.value = String(banners.heroInterval);
+    }
 
+    // Populate Hero Banners List
+    if (Array.isArray(banners.heroList) && banners.heroList.length > 0) {
+      AdminState.heroBannersList = banners.heroList.map(b => ({
+        image: b.image || "assets/banners/banner-main.jpg",
+        title: b.title || "",
+        link: b.link || "#products-section",
+        enabled: b.enabled !== false
+      }));
+    } else if (banners.hero && banners.hero.image) {
+      AdminState.heroBannersList = [{
+        image: banners.hero.image,
+        title: banners.hero.title || "",
+        link: banners.hero.btnLink || "#products-section",
+        enabled: true
+      }];
+    } else {
+      AdminState.heroBannersList = [...DEFAULT_HERO_BANNERS_LIST];
+    }
+
+    renderHeroBannersManager();
     updateBannerLivePreviews();
   } catch (err) {
     console.error("Error loading banner settings:", err);
   }
 }
 
+function renderHeroBannersManager() {
+  const container = document.getElementById("hero-banners-list-container");
+  if (!container) return;
+
+  if (!AdminState.heroBannersList || AdminState.heroBannersList.length === 0) {
+    AdminState.heroBannersList = [...DEFAULT_HERO_BANNERS_LIST];
+  }
+
+  const total = AdminState.heroBannersList.length;
+
+  container.innerHTML = AdminState.heroBannersList.map((banner, index) => `
+    <div class="admin-banner-item" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:0.9rem; margin-bottom:0.75rem; box-shadow:0 1px 4px rgba(0,0,0,0.03); transition:border-color 0.2s;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.65rem; border-bottom:1px solid #f1f5f9; padding-bottom:0.4rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="background:#175349; color:#ffffff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px;">#${index + 1}</span>
+          <strong style="font-size:0.88rem; color:#1e293b;">${escapeAdminHtml(banner.title || "بانر إعلاني #" + (index + 1))}</strong>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.35rem;">
+          <button type="button" class="btn-sm" style="background:#f1f5f9; border:none; border-radius:6px; padding:3px 8px; cursor:pointer;" onclick="moveHeroBanner(${index}, -1)" title="تحريك لأعلى" ${index === 0 ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}>⬆️</button>
+          <button type="button" class="btn-sm" style="background:#f1f5f9; border:none; border-radius:6px; padding:3px 8px; cursor:pointer;" onclick="moveHeroBanner(${index}, 1)" title="تحريك لأسفل" ${index === total - 1 ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}>⬇️</button>
+          <button type="button" class="btn-sm" style="background:#fee2e2; color:#ef4444; border:none; border-radius:6px; padding:3px 8px; cursor:pointer;" onclick="removeHeroBanner(${index})" title="حذف هذا البانر">🗑️</button>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:110px 1fr; gap:0.85rem; align-items:start;">
+        <div>
+          <div style="width:100%; aspect-ratio:16/9; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+            <img src="${banner.image || 'assets/banners/banner-main.jpg'}" alt="معاينة" style="width:100%; height:100%; object-fit:contain; display:block;" onerror="this.src='assets/banner.jpg'">
+          </div>
+          <label style="display:block; text-align:center; background:#f0fdf4; color:#15803d; border:1px dashed #86efac; border-radius:6px; padding:3px; font-size:0.72rem; margin-top:0.35rem; cursor:pointer; font-weight:700;">
+            تغيير الصورة ☁️
+            <input type="file" accept="image/*" style="display:none;" onchange="handleHeroBannerItemUpload(event, ${index})">
+          </label>
+        </div>
+
+        <div>
+          <div style="margin-bottom:0.4rem;">
+            <label style="font-size:0.75rem; font-weight:700; color:#64748b; display:block; margin-bottom:0.15rem;">رابط الصورة (URL أو مسار):</label>
+            <input type="text" value="${escapeAdminHtml(banner.image || '')}" onchange="updateHeroBannerField(${index}, 'image', this.value)" style="width:100%; font-size:0.8rem; padding:0.35rem 0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:0.4rem;">
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#64748b; display:block; margin-bottom:0.15rem;">عنوان البانر:</label>
+              <input type="text" value="${escapeAdminHtml(banner.title || '')}" onchange="updateHeroBannerField(${index}, 'title', this.value)" style="width:100%; font-size:0.8rem; padding:0.35rem 0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#64748b; display:block; margin-bottom:0.15rem;">رابط النقر (Link):</label>
+              <input type="text" value="${escapeAdminHtml(banner.link || '#products-section')}" onchange="updateHeroBannerField(${index}, 'link', this.value)" style="width:100%; font-size:0.8rem; padding:0.35rem 0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+            </div>
+          </div>
+          <label style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.78rem; cursor:pointer; color:#334155;">
+            <input type="checkbox" ${banner.enabled !== false ? 'checked' : ''} onchange="updateHeroBannerField(${index}, 'enabled', this.checked)">
+            <span>تفعيل هذا البانر في السلايدر</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function escapeAdminHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function addNewHeroBanner() {
+  AdminState.heroBannersList.push({
+    image: "assets/banners/banner-main.jpg",
+    title: "بانر إعلاني جديد 🌟",
+    link: "#products-section",
+    enabled: true
+  });
+  renderHeroBannersManager();
+  updateBannerLivePreviews();
+  showAdminToast("تمت إضافة خانة بانر جديد (يمكنك تعديل الصورة والرابط)");
+}
+
+function removeHeroBanner(index) {
+  if (AdminState.heroBannersList.length <= 1) {
+    alert("يجب أن يحتوي السلايدر على بانر واحد على الأقل.");
+    return;
+  }
+  if (!confirm("هل أنت متأكد من حذف هذا البانر من السلايدر؟")) return;
+
+  AdminState.heroBannersList.splice(index, 1);
+  renderHeroBannersManager();
+  updateBannerLivePreviews();
+  showAdminToast("تم حذف البانر من القائمة");
+}
+
+function moveHeroBanner(index, direction) {
+  const target = index + direction;
+  if (target < 0 || target >= AdminState.heroBannersList.length) return;
+
+  const temp = AdminState.heroBannersList[index];
+  AdminState.heroBannersList[index] = AdminState.heroBannersList[target];
+  AdminState.heroBannersList[target] = temp;
+
+  renderHeroBannersManager();
+  updateBannerLivePreviews();
+}
+
+function updateHeroBannerField(index, field, value) {
+  if (AdminState.heroBannersList[index]) {
+    AdminState.heroBannersList[index][field] = value;
+    updateBannerLivePreviews();
+  }
+}
+
+async function handleHeroBannerItemUpload(e, index) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  showAdminToast("جاري تجهيز ورفع صورة البانر...");
+
+  const reader = new FileReader();
+  reader.onload = (re) => {
+    updateHeroBannerField(index, "image", re.target.result);
+    renderHeroBannersManager();
+  };
+  reader.readAsDataURL(file);
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const resp = await fetch(`${AdminState.workerUrl}/upload`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.url) {
+        updateHeroBannerField(index, "image", data.url);
+        renderHeroBannersManager();
+        showAdminToast("✓ تم رفع الصورة إلى Cloudflare R2 بنجاح! ☁️");
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("Upload fallback to local preview:", err);
+  }
+}
+
 function updateBannerLivePreviews() {
-  // Top bar preview
+  // 1. Top bar preview
   const topEnabled = document.getElementById("banner-topbar-enabled")?.checked ?? true;
   const topBadge = document.getElementById("banner-topbar-badge")?.value || "";
   const topText = document.getElementById("banner-topbar-text")?.value || "";
@@ -1345,18 +1540,12 @@ function updateBannerLivePreviews() {
     prevExtra.style.display = topExtra ? "" : "none";
   }
 
-  // Hero preview
+  // 2. Hero Carousel preview
   const heroEnabled = document.getElementById("banner-hero-enabled")?.checked ?? true;
-  const heroImg = document.getElementById("banner-hero-img-url")?.value || "assets/banner.jpg";
-  const heroTitle = document.getElementById("banner-hero-title")?.value || "";
-  const heroSub = document.getElementById("banner-hero-subtitle")?.value || "";
-  const heroBtnText = document.getElementById("banner-hero-btn-text")?.value || "";
-
   const prevHeroContainer = document.getElementById("preview-hero-container");
   const prevHeroImg = document.getElementById("preview-hero-img");
   const prevHeroTitle = document.getElementById("preview-hero-title");
-  const prevHeroSub = document.getElementById("preview-hero-subtitle");
-  const prevHeroBtn = document.getElementById("preview-hero-btn");
+  const prevHeroCounter = document.getElementById("preview-hero-counter");
 
   if (prevHeroContainer) {
     if (heroEnabled) {
@@ -1367,10 +1556,14 @@ function updateBannerLivePreviews() {
       prevHeroContainer.style.opacity = "0.45";
     }
   }
-  if (prevHeroImg) prevHeroImg.src = heroImg;
-  if (prevHeroTitle) prevHeroTitle.textContent = heroTitle;
-  if (prevHeroSub) prevHeroSub.textContent = heroSub;
-  if (prevHeroBtn) prevHeroBtn.textContent = heroBtnText;
+
+  const activeBanners = (AdminState.heroBannersList || []).filter(b => b.enabled !== false);
+  if (activeBanners.length > 0) {
+    const firstBanner = activeBanners[0];
+    if (prevHeroImg) prevHeroImg.src = firstBanner.image || "assets/banners/banner-main.jpg";
+    if (prevHeroTitle) prevHeroTitle.textContent = firstBanner.title || "وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡";
+    if (prevHeroCounter) prevHeroCounter.textContent = `${activeBanners.length} بانرات نشطة`;
+  }
 }
 
 async function saveBannerSettings() {
@@ -1384,12 +1577,14 @@ async function saveBannerSettings() {
       },
       hero: {
         enabled: document.getElementById("banner-hero-enabled")?.checked ?? true,
-        image: document.getElementById("banner-hero-img-url")?.value.trim() || "assets/banner.jpg",
-        title: document.getElementById("banner-hero-title")?.value.trim() || "",
-        subtitle: document.getElementById("banner-hero-subtitle")?.value.trim() || "",
-        btnText: document.getElementById("banner-hero-btn-text")?.value.trim() || "",
-        btnLink: document.getElementById("banner-hero-btn-link")?.value.trim() || "#products-section"
+        image: AdminState.heroBannersList[0]?.image || "assets/banners/banner-main.jpg",
+        title: AdminState.heroBannersList[0]?.title || "وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك 💡",
+        subtitle: "منتجات ذكية، مبتكرة، ومختارة بعناية لحل مشاكل المنزل والمطبخ والتنظيف اليومية.",
+        btnText: "تسوق الحلول الآن 🛍️",
+        btnLink: AdminState.heroBannersList[0]?.link || "#products-section"
       },
+      heroInterval: parseFloat(document.getElementById("banner-hero-interval")?.value || "4.5"),
+      heroList: AdminState.heroBannersList,
       updatedAt: new Date().toISOString()
     };
 
@@ -1398,7 +1593,7 @@ async function saveBannerSettings() {
     }
 
     updateBannerLivePreviews();
-    showAdminToast("✓ تم حفظ ونشر إعدادات البانرات والعروض في المتجر بنجاح! 📢");
+    showAdminToast("✓ تم حفظ ونشر إعدادات سلايدر البانرات والعروض في المتجر بنجاح! 📢");
   } catch (err) {
     console.error("Error saving banner settings:", err);
     alert("حدث خطأ أثناء حفظ الإعدادات: " + err.message);
@@ -1406,7 +1601,7 @@ async function saveBannerSettings() {
 }
 
 function resetBannerSettingsToDefault() {
-  if (!confirm("هل أنت متأكد من استعادة النصوص والصور الافتراضية للبانرات؟")) return;
+  if (!confirm("هل أنت متأكد من استعادة البانرات الافتراضية الأربعة للسلايدر؟")) return;
 
   const topEnabled = document.getElementById("banner-topbar-enabled");
   const topBadge = document.getElementById("banner-topbar-badge");
@@ -1419,65 +1614,16 @@ function resetBannerSettingsToDefault() {
   if (topExtra) topExtra.value = DEFAULT_BANNERS.topBar.extra;
 
   const heroEnabled = document.getElementById("banner-hero-enabled");
-  const heroImgUrl = document.getElementById("banner-hero-img-url");
-  const heroTitle = document.getElementById("banner-hero-title");
-  const heroSub = document.getElementById("banner-hero-subtitle");
-  const heroBtnText = document.getElementById("banner-hero-btn-text");
-  const heroBtnLink = document.getElementById("banner-hero-btn-link");
-
   if (heroEnabled) heroEnabled.checked = true;
-  if (heroImgUrl) heroImgUrl.value = DEFAULT_BANNERS.hero.image;
-  if (heroTitle) heroTitle.value = DEFAULT_BANNERS.hero.title;
-  if (heroSub) heroSub.value = DEFAULT_BANNERS.hero.subtitle;
-  if (heroBtnText) heroBtnText.value = DEFAULT_BANNERS.hero.btnText;
-  if (heroBtnLink) heroBtnLink.value = DEFAULT_BANNERS.hero.btnLink;
 
+  const heroInterval = document.getElementById("banner-hero-interval");
+  if (heroInterval) heroInterval.value = "4.5";
+
+  AdminState.heroBannersList = JSON.parse(JSON.stringify(DEFAULT_HERO_BANNERS_LIST));
+
+  renderHeroBannersManager();
   updateBannerLivePreviews();
-  showAdminToast("تم استرجاع الإعدادات الافتراضية (اضغط حفظ لنشرها)");
-}
-
-async function handleHeroBannerUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const statusEl = document.getElementById("banner-upload-status");
-  const urlInput = document.getElementById("banner-hero-img-url");
-
-  statusEl.textContent = "جاري رفع صورة البانر إلى Cloudflare R2...";
-  statusEl.style.color = "#0284c7";
-
-  const reader = new FileReader();
-  reader.onload = (re) => {
-    urlInput.value = re.target.result;
-    updateBannerLivePreviews();
-  };
-  reader.readAsDataURL(file);
-
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const resp = await fetch(`${AdminState.workerUrl}/upload`, {
-      method: "POST",
-      body: formData
-    });
-
-    if (resp.ok) {
-      const data = await resp.json();
-      if (data.url) {
-        urlInput.value = data.url;
-        statusEl.textContent = "تم الرفع بنجاح إلى Cloudflare R2! ☁️";
-        statusEl.style.color = "#16a34a";
-        updateBannerLivePreviews();
-        return;
-      }
-    }
-    throw new Error("Worker upload failed");
-  } catch (err) {
-    console.warn("Hero banner upload fallback:", err);
-    statusEl.textContent = "تم تجهيز الصورة بنجاح (جاهزة للحفظ)";
-    statusEl.style.color = "#16a34a";
-  }
+  showAdminToast("تم استرجاع البانرات الافتراضية (اضغط حفظ ونشر لاعتمادها)");
 }
 
 /**
