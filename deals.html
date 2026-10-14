@@ -81,10 +81,34 @@
   <!-- Top Announcement Bar -->
   <aside class="top-bar" id="announcement-bar">
     <div class="container top-bar-content">
-      <span class="badge-gold" id="announcement-badge">عروض التوفير 🔥</span>
-      <span id="announcement-text">عروض أدوات منزلية في مصر: شحن مجاني للطلبات بقيمة 1000 ج.م أو أكثر! 🚚 الدفع عند الاستلام بعد المعاينة</span>
+      <span class="badge-gold" id="announcement-badge">عرض خاص</span>
+      <span id="announcement-text">🚚 شحن مجاني لجميع محافظات مصر 🇪🇬 عدا الصعيد وسيناء تحدد حسب الواجهه ✨</span>
       <span id="announcement-extra">• كل مشكلة ليها حلّها مع متجر <strong>حِلها</strong></span>
     </div>
+    <script>
+      (function() {
+        try {
+          var cached = localStorage.getItem("helha_topbar_banners");
+          if (cached) {
+            var tb = JSON.parse(cached);
+            var bar = document.getElementById("announcement-bar");
+            var b = document.getElementById("announcement-badge");
+            var t = document.getElementById("announcement-text");
+            var ex = document.getElementById("announcement-extra");
+            if (bar && tb.enabled === false) {
+              bar.style.display = "none";
+            } else if (bar) {
+              if (b && tb.badge) b.textContent = tb.badge;
+              if (t && tb.text) t.textContent = tb.text;
+              if (ex && tb.extra !== undefined) {
+                ex.textContent = tb.extra;
+                ex.style.display = tb.extra ? "" : "none";
+              }
+            }
+          }
+        } catch(e) {}
+      })();
+    </script>
   </aside>
 
   <!-- Header Navigation -->

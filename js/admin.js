@@ -1354,7 +1354,7 @@ const DEFAULT_BANNERS = {
   topBar: {
     enabled: true,
     badge: "عرض خاص",
-    text: "🎉 شحن مجاني للطلبات فوق 1000 ج.م في جميع المحافظات!",
+    text: "🚚 شحن مجاني لجميع محافظات مصر 🇪🇬 عدا الصعيد وسيناء تحدد حسب الواجهه ✨",
     extra: "• كل مشكلة ليها حلّها مع متجر حِلها"
   },
   hero: {
@@ -1657,6 +1657,10 @@ async function saveBannerSettings() {
     if (typeof db !== "undefined" && db) {
       await db.ref("settings/banners").set(bannerData);
     }
+
+    try {
+      localStorage.setItem("helha_topbar_banners", JSON.stringify(bannerData.topBar));
+    } catch (e) {}
 
     updateBannerLivePreviews();
     showAdminToast("✓ تم حفظ ونشر إعدادات سلايدر البانرات والعروض في المتجر بنجاح! 📢");

@@ -1644,6 +1644,12 @@ function initBannersListener() {
     const textEl = document.getElementById("announcement-text");
     const extraEl = document.getElementById("announcement-extra");
 
+    if (topBar) {
+      try {
+        localStorage.setItem("helha_topbar_banners", JSON.stringify(topBar));
+      } catch (e) {}
+    }
+
     if (topBarEl && topBar) {
       if (topBar.enabled === false) {
         topBarEl.style.display = "none";
