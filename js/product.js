@@ -243,6 +243,21 @@ const ProductPage = {
       }, { passive: true });
       galleryContainer._hasHoverListeners = true;
     }
+
+    // Pause autoplay when gallery is scrolled out of viewport (prevents any layout shifts or unwanted page scrolls)
+    if ("IntersectionObserver" in window && galleryContainer && !galleryContainer._hasObserver) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            this.startGalleryAutoPlay();
+          } else {
+            this.stopGalleryAutoPlay();
+          }
+        });
+      }, { threshold: 0.1 });
+      observer.observe(galleryContainer);
+      galleryContainer._hasObserver = true;
+    }
   },
 
   showGalleryImage(index) {
@@ -270,13 +285,15 @@ const ProductPage = {
       dot.classList.toggle("active", idx === this.currentGalleryIndex);
     });
 
-    // Update Thumbs active class & scroll thumbnail into view smoothly
+    // Update Thumbs active class & scroll ONLY the thumbs strip container horizontally (NEVER the page window!)
+    const thumbsStrip = document.getElementById("gallery-thumbnails-strip");
     const thumbs = document.querySelectorAll(".gallery-thumb");
     thumbs.forEach((thumb, idx) => {
       const isActive = idx === this.currentGalleryIndex;
       thumb.classList.toggle("active", isActive);
-      if (isActive) {
-        thumb.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      if (isActive && thumbsStrip) {
+        const targetLeft = thumb.offsetLeft - (thumbsStrip.clientWidth / 2) + (thumb.clientWidth / 2);
+        thumbsStrip.scrollTo({ left: targetLeft, behavior: "smooth" });
       }
     });
   },
@@ -591,19 +608,18 @@ const ProductPage = {
   scrollToOrderForm() {
     const formEl = document.getElementById("order-form-container");
     if (formEl) {
-      formEl.scrollIntoView({ behavior: "smooth" });
-      setTimeout(() => {
-        const nameInput = document.getElementById("order-name");
-        if (nameInput) nameInput.focus();
-      }, 500);
+      formEl.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   },
 
   setupListeners() {
-    // Top buy button scrolls to form
+    // Top buy button scrolls cleanly to form
     const topBuyBtn = document.getElementById("btn-top-buy");
     if (topBuyBtn) {
-      topBuyBtn.addEventListener("click", () => this.scrollToOrderForm());
+      topBuyBtn.addEventListener("click", (e) => {
+        if (e) e.preventDefault();
+        this.scrollToOrderForm();
+      });
     }
 
     // Direct Order Form Submission
