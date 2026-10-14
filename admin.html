@@ -935,18 +935,41 @@
             </div>
           </div>
 
-          <!-- Image Upload Area -->
-          <div class="form-group">
-            <label class="form-label">صورة المنتج (رفع إلى Cloudflare R2 أو رابط مباشر):</label>
-            <div class="upload-dropzone" onclick="document.getElementById('prod-image-file').click()">
-              <input type="file" id="prod-image-file" accept="image/*" style="display:none;">
-              <div class="upload-icon">☁️</div>
-              <p><strong>اضغط هنا لاختيار صورة من جهازك</strong> لرفعها مباشرة إلى R2 عبر Worker</p>
-              <div id="upload-status-text" class="upload-status"></div>
-              <img id="prod-upload-preview" class="upload-preview" alt="معاينة الصورة">
+          <!-- Product Multi-Image Gallery Upload Area (Up to 10 Images) -->
+          <div class="form-group" style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:1.2rem; margin:1.25rem 0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+              <div>
+                <label class="form-label" style="font-size:0.98rem; color:var(--admin-primary); margin:0; font-weight:800;">
+                  🖼️ معرض صور المنتج (حتى 10 صور)
+                </label>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin:0.25rem 0 0;">
+                  يمكنك إضافة حتى 10 صور للمنتج لتعرض في سلايدر تلقائي احترافي. أول صورة هي الصورة الرئيسية للمتجر.
+                </p>
+              </div>
+              <span id="prod-images-counter-badge" class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:800; font-size:0.82rem; padding:4px 10px; border-radius:999px;">
+                0 من 10 صور مضافة
+              </span>
             </div>
-            <div style="margin-top:0.6rem;">
-              <input type="url" id="prod-image-url" class="form-control" placeholder="أو الصق رابط صورة خارجي مباشر هنا">
+
+            <!-- Upload Dropzone (Multi-file) -->
+            <div class="upload-dropzone" onclick="document.getElementById('prod-images-files').click()" style="cursor:pointer; padding:1.2rem; text-align:center; border:2px dashed #94a3b8; border-radius:8px; background:#ffffff; transition:all 0.2s;">
+              <input type="file" id="prod-images-files" multiple accept="image/*" style="display:none;" onchange="handleAdminMultiImagesSelect(event)">
+              <div class="upload-icon" style="font-size:2rem; margin-bottom:0.4rem;">☁️</div>
+              <p style="margin:0; font-size:0.9rem;"><strong>اضغط هنا لاختيار صورة أو عدة صور من جهازك (حتى 10)</strong> لرفعها مباشرة</p>
+              <div id="upload-status-text" class="upload-status" style="font-weight:700; margin-top:0.4rem; font-size:0.85rem;"></div>
+            </div>
+
+            <!-- Direct URL Input -->
+            <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+              <input type="url" id="prod-image-url-input" class="form-control" placeholder="أو الصق رابط صورة خارجي واضغط إضافة" style="flex:1;">
+              <button type="button" class="btn-admin-action btn-add" onclick="addAdminImageByUrl()" style="white-space:nowrap; padding:0.6rem 1rem;">
+                + إضافة الصورة
+              </button>
+            </div>
+
+            <!-- Thumbnails Preview Grid -->
+            <div id="prod-images-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:0.75rem; margin-top:1rem;">
+              <!-- Dynamically populated via JS -->
             </div>
           </div>
 

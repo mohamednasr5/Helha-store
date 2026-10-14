@@ -99,8 +99,29 @@
       <button id="btn-favorite" class="favorite-btn" title="إضافة للمفضلة">🤍</button>
     </header>
 
-    <!-- Product Hero Image -->
-    <img id="prod-hero-img" src="assets/logo.jpg" alt="صورة المنتج" class="product-hero-image">
+    <!-- Product Hero Gallery (Up to 10 images with auto-slider, controls & thumbnails) -->
+    <div class="product-gallery-container" id="product-gallery-container">
+      <div class="product-gallery-main" id="product-gallery-main">
+        <img id="prod-hero-img" src="assets/logo.jpg" alt="صورة المنتج" class="product-hero-image">
+        
+        <!-- Navigation Arrows -->
+        <button type="button" class="gallery-nav-btn gallery-prev-btn" id="gallery-prev-btn" aria-label="الصورة السابقة" title="الصورة السابقة">
+          ‹
+        </button>
+        <button type="button" class="gallery-nav-btn gallery-next-btn" id="gallery-next-btn" aria-label="الصورة التالية" title="الصورة التالية">
+          ›
+        </button>
+
+        <!-- Image Counter Badge (e.g. 1 / 5) -->
+        <div class="gallery-counter-badge" id="gallery-counter-badge" style="display:none;">1 / 1</div>
+      </div>
+
+      <!-- Gallery Dots Indicators -->
+      <div class="gallery-dots" id="gallery-dots" style="display:none;"></div>
+
+      <!-- Gallery Thumbnails Strip -->
+      <div class="gallery-thumbnails-strip" id="gallery-thumbnails-strip" style="display:none;"></div>
+    </div>
 
     <!-- Title & Rating -->
     <h1 id="prod-title" class="prod-main-title">جاري تحميل المنتج...</h1>

@@ -22,6 +22,7 @@ const AdminState = {
   currentProductCategoryFilter: "all",
   currentOrderFilter: "all",
   editingProductId: null,
+  currentProductImages: [],
   workerUrl: "https://spyone.nonm1724.workers.dev",
   r2PublicUrl: "https://pub-a9759aa27af1490f9ac3ee12ed967379.r2.dev"
 };
@@ -597,17 +598,18 @@ function openAddProductModal() {
   document.getElementById("prod-stock").value = "50";
   document.getElementById("prod-desc").value = "";
   document.getElementById("prod-features").value = "";
-  document.getElementById("prod-image-url").value = "";
+
+  // Reset multi-image gallery state
+  AdminState.currentProductImages = [];
+  renderAdminProductImages();
+  const urlInput = document.getElementById("prod-image-url-input");
+  if (urlInput) urlInput.value = "";
+  const uploadStatus = document.getElementById("upload-status-text");
+  if (uploadStatus) uploadStatus.textContent = "";
 
   // Reset offers container
   const offersContainer = document.getElementById("prod-offers-container");
   if (offersContainer) offersContainer.innerHTML = "";
-  
-  const preview = document.getElementById("prod-upload-preview");
-  if (preview) {
-    preview.src = "";
-    preview.style.display = "none";
-  }
 
   document.getElementById("product-modal").classList.add("active");
 }
@@ -627,7 +629,20 @@ function openEditProductModal(productId) {
   document.getElementById("prod-stock").value = prod.stockCount || "50";
   document.getElementById("prod-desc").value = prod.description || "";
   document.getElementById("prod-features").value = (prod.features || []).join("\n");
-  document.getElementById("prod-image-url").value = prod.image || "";
+
+  // Populate multi-image gallery state (up to 10 images)
+  if (Array.isArray(prod.images) && prod.images.length > 0) {
+    AdminState.currentProductImages = [...prod.images.filter(Boolean)].slice(0, 10);
+  } else if (prod.image) {
+    AdminState.currentProductImages = [prod.image];
+  } else {
+    AdminState.currentProductImages = [];
+  }
+  renderAdminProductImages();
+  const urlInput = document.getElementById("prod-image-url-input");
+  if (urlInput) urlInput.value = "";
+  const uploadStatus = document.getElementById("upload-status-text");
+  if (uploadStatus) uploadStatus.textContent = "";
 
   // Populate offers
   const offersContainer = document.getElementById("prod-offers-container");
@@ -636,12 +651,6 @@ function openEditProductModal(productId) {
     if (prod.offers && prod.offers.length > 0) {
       prod.offers.forEach(off => addOfferRow(off));
     }
-  }
-
-  const preview = document.getElementById("prod-upload-preview");
-  if (preview && prod.image) {
-    preview.src = prod.image;
-    preview.style.display = "inline-block";
   }
 
   document.getElementById("product-modal").classList.add("active");
@@ -663,7 +672,18 @@ async function handleSaveProduct(e) {
   const stockCount = Number(document.getElementById("prod-stock").value) || 50;
   const description = document.getElementById("prod-desc").value.trim();
   const featuresText = document.getElementById("prod-features").value.trim();
-  const imageUrl = document.getElementById("prod-image-url").value.trim();
+  
+  // Also check if user typed a direct URL without clicking "add"
+  const urlInput = document.getElementById("prod-image-url-input");
+  const directUrl = urlInput ? urlInput.value.trim() : "";
+  if (directUrl && AdminState.currentProductImages.length < 10 && !AdminState.currentProductImages.includes(directUrl)) {
+    AdminState.currentProductImages.push(directUrl);
+  }
+
+  const images = AdminState.currentProductImages && AdminState.currentProductImages.length > 0
+    ? AdminState.currentProductImages.slice(0, 10)
+    : ["assets/logo.jpg"];
+  const primaryImage = images[0] || "assets/logo.jpg";
   const offers = collectProductOffers();
 
   if (!name || isNaN(price)) {
@@ -689,7 +709,8 @@ async function handleSaveProduct(e) {
     stockCount: stockCount,
     description: description,
     features: features,
-    image: imageUrl || "assets/logo.jpg",
+    image: primaryImage,
+    images: images,
     offers: offers,
     isDemo: false,
     updatedAt: new Date().toISOString()
@@ -927,61 +948,189 @@ function closeOrderDetailsModal() {
 }
 
 /**
- * 6. Cloudflare R2 Image Upload Handler via Worker
+ * 6. Cloudflare R2 Multi-Image Upload & Gallery Manager (Up to 10 Images)
  */
+const MAX_PRODUCT_IMAGES = 10;
+
 function setupImageUploadHandler() {
-  const fileInput = document.getElementById("prod-image-file");
-  const preview = document.getElementById("prod-upload-preview");
-  const statusEl = document.getElementById("upload-status-text");
-  const urlInput = document.getElementById("prod-image-url");
-
-  if (!fileInput) return;
-
-  fileInput.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Show local preview immediately
-    const reader = new FileReader();
-    reader.onload = (re) => {
-      preview.src = re.target.result;
-      preview.style.display = "inline-block";
-    };
-    reader.readAsDataURL(file);
-
-    statusEl.textContent = "جاري رفع الصورة إلى Cloudflare R2...";
-    statusEl.style.color = "#0284c7";
-
-    try {
-      // 1. Try upload to Worker endpoint
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const resp = await fetch(`${AdminState.workerUrl}/upload`, {
-        method: "POST",
-        body: formData
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.url) {
-          urlInput.value = data.url;
-          statusEl.textContent = "تم الرفع بنجاح إلى R2! ☁️";
-          statusEl.style.color = "#16a34a";
-          return;
-        }
+  const urlInput = document.getElementById("prod-image-url-input");
+  if (urlInput) {
+    urlInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addAdminImageByUrl();
       }
-      throw new Error("Worker responded with error");
-    } catch (err) {
-      console.warn("Worker upload error (fallback active):", err);
-      // Fallback: If worker is not yet deployed with upload script, use base64 preview or inform user
-      reader.onload = (re) => {
-        urlInput.value = re.target.result;
-        statusEl.textContent = "تم تجهيز الصورة بنجاح (سيتم الرفع المباشر أو يمكنك استخدام الرابط العام لـ R2)";
-        statusEl.style.color = "#16a34a";
-      };
+    });
+  }
+
+  // Backward compatibility with single upload if present
+  const singleInput = document.getElementById("prod-image-file");
+  if (singleInput) {
+    singleInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = await uploadSingleImageFile(file);
+      if (url && AdminState.currentProductImages.length < MAX_PRODUCT_IMAGES) {
+        AdminState.currentProductImages.push(url);
+        renderAdminProductImages();
+      }
+    });
+  }
+}
+
+async function uploadSingleImageFile(file) {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const resp = await fetch(`${AdminState.workerUrl}/upload`, {
+      method: "POST",
+      body: formData
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && data.url) {
+        return data.url;
+      }
     }
+  } catch (err) {
+    console.warn("Cloudflare Worker upload failed, using fallback:", err);
+  }
+
+  // Fallback to Base64 data URL
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = (e) => reject(e);
+    reader.readAsDataURL(file);
   });
+}
+
+function renderAdminProductImages() {
+  const grid = document.getElementById("prod-images-grid");
+  const badge = document.getElementById("prod-images-counter-badge");
+  const images = AdminState.currentProductImages || [];
+
+  if (badge) {
+    badge.textContent = `${images.length} من ${MAX_PRODUCT_IMAGES} صور مضافة`;
+    if (images.length >= MAX_PRODUCT_IMAGES) {
+      badge.style.background = "#fef2f2";
+      badge.style.color = "#dc2626";
+    } else {
+      badge.style.background = "#e0f2fe";
+      badge.style.color = "#0369a1";
+    }
+  }
+
+  if (!grid) return;
+
+  if (images.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 0.85rem 0.5rem; background:#ffffff; border-radius:8px; border:1px dashed #cbd5e1;">
+        لم تقم بإضافة أي صور بعد. اضغط بالأعلى لرفع صور (حتى 10) أو أضف رابط صورة مباشر.
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = images.map((url, idx) => `
+    <div style="position:relative; width:100%; aspect-ratio:1/1; border-radius:8px; overflow:hidden; border:2.5px solid ${idx === 0 ? '#10b981' : '#cbd5e1'}; background:#ffffff; box-shadow:0 2px 6px rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:center;">
+      <img src="${url}" alt="صورة ${idx + 1}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/logo.jpg'">
+      ${idx === 0 ? `
+        <span style="position:absolute; top:4px; right:4px; background:#10b981; color:#fff; font-size:0.68rem; font-weight:800; padding:2px 6px; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.3); pointer-events:none;">
+          ★ الرئيسية
+        </span>
+      ` : `
+        <button type="button" onclick="setPrimaryAdminProductImage(${idx})" title="تعيين كصورة رئيسية للمتجر" style="position:absolute; top:4px; right:4px; background:rgba(15,23,42,0.72); color:#fff; border:none; border-radius:4px; font-size:0.65rem; font-weight:700; padding:2px 5px; cursor:pointer; transition:background 0.2s;">
+          تعيين رئيسية
+        </button>
+      `}
+      <button type="button" onclick="removeAdminProductImage(${idx})" title="حذف هذه الصورة" style="position:absolute; bottom:4px; left:4px; background:rgba(239,68,68,0.9); color:#fff; border:none; border-radius:4px; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; cursor:pointer; transition:transform 0.15s;">
+        ✕
+      </button>
+      <span style="position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.55); color:#fff; font-size:0.62rem; padding:1px 4px; border-radius:3px;">
+        ${idx + 1}
+      </span>
+    </div>
+  `).join("");
+}
+
+async function handleAdminMultiImagesSelect(event) {
+  const files = Array.from(event.target.files || []);
+  if (!files.length) return;
+
+  const statusEl = document.getElementById("upload-status-text");
+  const availableSlots = MAX_PRODUCT_IMAGES - AdminState.currentProductImages.length;
+
+  if (availableSlots <= 0) {
+    alert(`عفواً، لقد وصلت للحد الأقصى (${MAX_PRODUCT_IMAGES} صور) لهذا المنتج.`);
+    event.target.value = "";
+    return;
+  }
+
+  const filesToUpload = files.slice(0, availableSlots);
+  if (files.length > availableSlots) {
+    alert(`سيتم رفع أول ${availableSlots} صور فقط للالتزام بالحد الأقصى (10 صور).`);
+  }
+
+  if (statusEl) {
+    statusEl.textContent = `جاري رفع ${filesToUpload.length} صورة...`;
+    statusEl.style.color = "#0284c7";
+  }
+
+  for (let i = 0; i < filesToUpload.length; i++) {
+    try {
+      if (statusEl) statusEl.textContent = `جاري معالجة ورفع الصورة (${i + 1} من ${filesToUpload.length})...`;
+      const url = await uploadSingleImageFile(filesToUpload[i]);
+      if (url && AdminState.currentProductImages.length < MAX_PRODUCT_IMAGES) {
+        AdminState.currentProductImages.push(url);
+        renderAdminProductImages();
+      }
+    } catch (e) {
+      console.error("Error uploading file:", e);
+    }
+  }
+
+  if (statusEl) {
+    statusEl.textContent = "تم رفع وتجهيز الصور بنجاح! ☁️";
+    statusEl.style.color = "#16a34a";
+    setTimeout(() => {
+      if (statusEl) statusEl.textContent = "";
+    }, 4000);
+  }
+
+  event.target.value = "";
+}
+
+function addAdminImageByUrl() {
+  const urlInput = document.getElementById("prod-image-url-input");
+  if (!urlInput) return;
+  const url = urlInput.value.trim();
+  if (!url) {
+    alert("يرجى إدخال رابط الصورة أولاً!");
+    return;
+  }
+  if (AdminState.currentProductImages.length >= MAX_PRODUCT_IMAGES) {
+    alert(`لقد وصلت للحد الأقصى (${MAX_PRODUCT_IMAGES} صور) لهذا المنتج.`);
+    return;
+  }
+  AdminState.currentProductImages.push(url);
+  urlInput.value = "";
+  renderAdminProductImages();
+}
+
+function removeAdminProductImage(index) {
+  if (index >= 0 && index < AdminState.currentProductImages.length) {
+    AdminState.currentProductImages.splice(index, 1);
+    renderAdminProductImages();
+  }
+}
+
+function setPrimaryAdminProductImage(index) {
+  if (index > 0 && index < AdminState.currentProductImages.length) {
+    const [item] = AdminState.currentProductImages.splice(index, 1);
+    AdminState.currentProductImages.unshift(item);
+    renderAdminProductImages();
+  }
 }
 
 /**

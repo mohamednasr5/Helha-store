@@ -12,6 +12,9 @@ const ProductPage = {
   shippingSettings: null,
   recommendedProducts: [],
   autoScrollTimer: null,
+  galleryImages: [],
+  currentGalleryIndex: 0,
+  galleryAutoTimer: null,
 
   // Governorates of Egypt
   governorates: [
@@ -92,12 +95,8 @@ const ProductPage = {
       metaDesc.content = `تعرف على سعر ومواصفات ${p.name} في مصر. تسوق الآن شراء أونلاين بأفضل سعر مع التوصيل لكافة المحافظات والدفع عند الاستلام بعد المعاينة من متجر حِلها.`;
     }
 
-    // Image
-    const imgEl = document.getElementById("prod-hero-img");
-    if (imgEl) {
-      imgEl.src = p.image || "assets/logo.jpg";
-      imgEl.alt = p.name;
-    }
+    // Product Image Gallery (Up to 10 Images + Auto Slider)
+    this.initGallery(p);
 
     // Title & Rating
     const titleEl = document.getElementById("prod-title");
@@ -127,6 +126,187 @@ const ProductPage = {
 
     // Calculation Summary
     this.updateCalculation();
+  },
+
+  initGallery(p) {
+    // 1. Collect images array (up to 10 images)
+    let images = [];
+    if (Array.isArray(p.images) && p.images.length > 0) {
+      images = p.images.filter(Boolean);
+    } else if (p.image) {
+      images = [p.image];
+    } else {
+      images = ["assets/logo.jpg"];
+    }
+    this.galleryImages = images.slice(0, 10);
+    this.currentGalleryIndex = 0;
+
+    const heroImg = document.getElementById("prod-hero-img");
+    const prevBtn = document.getElementById("gallery-prev-btn");
+    const nextBtn = document.getElementById("gallery-next-btn");
+    const counterBadge = document.getElementById("gallery-counter-badge");
+    const dotsContainer = document.getElementById("gallery-dots");
+    const thumbsContainer = document.getElementById("gallery-thumbnails-strip");
+    const galleryContainer = document.getElementById("product-gallery-container");
+
+    if (heroImg) {
+      heroImg.src = this.galleryImages[0];
+      heroImg.alt = p.name || "صورة المنتج";
+    }
+
+    // If only 1 image, hide controls & stop auto slideshow
+    if (this.galleryImages.length <= 1) {
+      if (prevBtn) prevBtn.style.display = "none";
+      if (nextBtn) nextBtn.style.display = "none";
+      if (counterBadge) counterBadge.style.display = "none";
+      if (dotsContainer) dotsContainer.style.display = "none";
+      if (thumbsContainer) thumbsContainer.style.display = "none";
+      this.stopGalleryAutoPlay();
+      return;
+    }
+
+    // Show controls for multiple images
+    if (prevBtn) prevBtn.style.display = "flex";
+    if (nextBtn) nextBtn.style.display = "flex";
+    if (counterBadge) {
+      counterBadge.style.display = "block";
+      counterBadge.textContent = `1 / ${this.galleryImages.length}`;
+    }
+
+    // Render Dots
+    if (dotsContainer) {
+      dotsContainer.style.display = "flex";
+      dotsContainer.innerHTML = this.galleryImages.map((_, idx) => `
+        <button type="button" class="gallery-dot ${idx === 0 ? 'active' : ''}" data-idx="${idx}" aria-label="الصورة ${idx + 1}" title="الصورة ${idx + 1}"></button>
+      `).join("");
+
+      dotsContainer.querySelectorAll(".gallery-dot").forEach(dot => {
+        dot.addEventListener("click", (e) => {
+          const idx = parseInt(e.currentTarget.getAttribute("data-idx"), 10);
+          this.showGalleryImage(idx);
+          this.resetGalleryAutoPlay();
+        });
+      });
+    }
+
+    // Render Thumbnails
+    if (thumbsContainer) {
+      thumbsContainer.style.display = "flex";
+      thumbsContainer.innerHTML = this.galleryImages.map((url, idx) => `
+        <button type="button" class="gallery-thumb ${idx === 0 ? 'active' : ''}" data-idx="${idx}" aria-label="عرض صورة ${idx + 1}" title="عرض صورة ${idx + 1}">
+          <img src="${url}" alt="${p.name || ''} - ${idx + 1}" onerror="this.src='assets/logo.jpg'">
+        </button>
+      `).join("");
+
+      thumbsContainer.querySelectorAll(".gallery-thumb").forEach(thumb => {
+        thumb.addEventListener("click", (e) => {
+          const idx = parseInt(e.currentTarget.getAttribute("data-idx"), 10);
+          this.showGalleryImage(idx);
+          this.resetGalleryAutoPlay();
+        });
+      });
+    }
+
+    // Navigation buttons listeners (Prev/Next)
+    if (prevBtn && !prevBtn._hasGalleryListener) {
+      prevBtn.addEventListener("click", () => {
+        this.prevGalleryImage();
+        this.resetGalleryAutoPlay();
+      });
+      prevBtn._hasGalleryListener = true;
+    }
+
+    if (nextBtn && !nextBtn._hasGalleryListener) {
+      nextBtn.addEventListener("click", () => {
+        this.nextGalleryImage();
+        this.resetGalleryAutoPlay();
+      });
+      nextBtn._hasGalleryListener = true;
+    }
+
+    // Auto slideshow: automatically cycle images every 3.5 seconds
+    this.startGalleryAutoPlay();
+
+    // Pause auto slideshow on mouse hover or touch
+    if (galleryContainer && !galleryContainer._hasHoverListeners) {
+      galleryContainer.addEventListener("mouseenter", () => {
+        this.stopGalleryAutoPlay();
+      });
+      galleryContainer.addEventListener("mouseleave", () => {
+        this.startGalleryAutoPlay();
+      });
+      galleryContainer.addEventListener("touchstart", () => {
+        this.stopGalleryAutoPlay();
+      }, { passive: true });
+      galleryContainer.addEventListener("touchend", () => {
+        this.startGalleryAutoPlay();
+      }, { passive: true });
+      galleryContainer._hasHoverListeners = true;
+    }
+  },
+
+  showGalleryImage(index) {
+    if (!this.galleryImages || this.galleryImages.length === 0) return;
+    const len = this.galleryImages.length;
+    this.currentGalleryIndex = ((index % len) + len) % len;
+
+    const heroImg = document.getElementById("prod-hero-img");
+    if (heroImg) {
+      heroImg.style.opacity = "0.7";
+      setTimeout(() => {
+        heroImg.src = this.galleryImages[this.currentGalleryIndex];
+        heroImg.style.opacity = "1";
+      }, 110);
+    }
+
+    const counterBadge = document.getElementById("gallery-counter-badge");
+    if (counterBadge) {
+      counterBadge.textContent = `${this.currentGalleryIndex + 1} / ${len}`;
+    }
+
+    // Update Dots active class
+    const dots = document.querySelectorAll(".gallery-dot");
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle("active", idx === this.currentGalleryIndex);
+    });
+
+    // Update Thumbs active class & scroll thumbnail into view smoothly
+    const thumbs = document.querySelectorAll(".gallery-thumb");
+    thumbs.forEach((thumb, idx) => {
+      const isActive = idx === this.currentGalleryIndex;
+      thumb.classList.toggle("active", isActive);
+      if (isActive) {
+        thumb.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
+    });
+  },
+
+  nextGalleryImage() {
+    this.showGalleryImage(this.currentGalleryIndex + 1);
+  },
+
+  prevGalleryImage() {
+    this.showGalleryImage(this.currentGalleryIndex - 1);
+  },
+
+  startGalleryAutoPlay() {
+    this.stopGalleryAutoPlay();
+    if (!this.galleryImages || this.galleryImages.length <= 1) return;
+    this.galleryAutoTimer = setInterval(() => {
+      this.nextGalleryImage();
+    }, 3500);
+  },
+
+  stopGalleryAutoPlay() {
+    if (this.galleryAutoTimer) {
+      clearInterval(this.galleryAutoTimer);
+      this.galleryAutoTimer = null;
+    }
+  },
+
+  resetGalleryAutoPlay() {
+    this.stopGalleryAutoPlay();
+    this.startGalleryAutoPlay();
   },
 
   renderSalesPitch(p) {

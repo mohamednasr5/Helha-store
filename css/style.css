@@ -807,6 +807,43 @@ img {
   transform: scale(1.06);
 }
 
+/* Elegant Light Sheen Sweep Hover Effect on Product Cards */
+.product-thumb::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.product-card:hover .product-thumb::after {
+  animation: lightSheenSweep 0.85s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes lightSheenSweep {
+  0% {
+    left: -130%;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    left: 150%;
+    opacity: 0;
+  }
+}
+
 .product-badge {
   position: absolute;
   top: 0.75rem;
