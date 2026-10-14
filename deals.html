@@ -231,31 +231,32 @@
       <!-- Free shipping meter -->
       <div class="free-shipping-bar">
         <div id="free-shipping-text">أضف منتجات بقيمة 1000 ج.م للحصول على شحن مجاني! 🚚</div>
-        <div class="progress-bar-track">
-          <div id="free-shipping-progress" class="progress-bar-fill" style="width: 0%;"></div>
+        <div class="free-shipping-progress">
+          <div id="free-shipping-progress-fill" class="free-shipping-progress-fill"></div>
         </div>
       </div>
 
-      <div id="cart-items-container" class="cart-items-container">
-        <!-- Rendered dynamically -->
+      <!-- Cart Items Body -->
+      <div id="cart-drawer-body" class="cart-body">
+        <!-- Cart items injected via JS -->
       </div>
 
+      <!-- Cart Footer / Summary -->
       <div class="cart-footer">
-        <div class="cart-summary-row">
+        <div class="cart-summary-line">
           <span>المجموع الفرعي:</span>
-          <span id="cart-subtotal">0 ج.م</span>
+          <strong id="cart-subtotal">0 ج.م</strong>
         </div>
-        <div class="cart-summary-row">
-          <span>مصاريف الشحن:</span>
-          <span id="cart-shipping-fee">50 ج.م</span>
+        <div class="cart-summary-line">
+          <span>الشحن:</span>
+          <span id="cart-shipping">35 ج.م</span>
         </div>
-        <div class="cart-summary-row total-row">
-          <span>الإجمالي الكلي:</span>
-          <span id="cart-grand-total">0 ج.م</span>
+        <div class="cart-total-line">
+          <span>الإجمالي النهائي:</span>
+          <span id="cart-total">0 ج.م</span>
         </div>
-
-        <button id="btn-proceed-checkout" class="btn-primary btn-checkout" onclick="openCheckoutModal()">
-          إتمام الطلب الآن (الدفع عند الاستلام) 🚚
+        <button class="btn-checkout" onclick="openCheckoutModal()">
+          <span>متابعة الشراء وإتمام الطلب 🚚</span>
         </button>
       </div>
     </div>

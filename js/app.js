@@ -310,12 +310,23 @@ function updateCartUI() {
       cartBubble.href = "javascript:void(0)";
       cartBubble.onclick = (e) => {
         e.preventDefault();
+        if (cartBubble) cartBubble.style.display = "none";
         if (typeof openCartDrawer === "function") openCartDrawer();
       };
       document.body.appendChild(cartBubble);
     }
     cartBubble.innerHTML = `<span>🛒 يوجد منتجات في السلة بانتظارك</span> <strong>(${totalCount})</strong>`;
-    cartBubble.style.display = "flex";
+    
+    // Hide bubble if cart or checkout is currently open
+    const isCartOpen = document.body.classList.contains("cart-open") || 
+      document.getElementById("cart-overlay")?.classList.contains("active") || 
+      document.getElementById("checkout-overlay")?.classList.contains("active");
+
+    if (isCartOpen) {
+      cartBubble.style.display = "none";
+    } else {
+      cartBubble.style.display = "flex";
+    }
   } else {
     mobCartNavItems.forEach(item => item.classList.remove("cart-glowing"));
     if (cartBubble) cartBubble.style.display = "none";
@@ -381,11 +392,22 @@ function updateCartUI() {
 function openCartDrawer() {
   const overlay = document.getElementById("cart-overlay");
   if (overlay) overlay.classList.add("active");
+  document.body.classList.add("cart-open");
+  const bubble = document.getElementById("mobile-cart-toast-bubble");
+  if (bubble) bubble.style.display = "none";
 }
 
 function closeCartDrawer() {
   const overlay = document.getElementById("cart-overlay");
   if (overlay) overlay.classList.remove("active");
+  if (!document.getElementById("checkout-overlay")?.classList.contains("active")) {
+    document.body.classList.remove("cart-open");
+  }
+  const totalCount = AppState.cart.reduce((sum, item) => sum + item.quantity, 0);
+  const bubble = document.getElementById("mobile-cart-toast-bubble");
+  if (bubble && totalCount > 0 && !document.getElementById("checkout-overlay")?.classList.contains("active")) {
+    bubble.style.display = "flex";
+  }
 }
 
 /**
@@ -617,12 +639,19 @@ function openCheckoutModal() {
   const checkoutOverlay = document.getElementById("checkout-overlay");
   updateCheckoutReview();
 
-  if (checkoutOverlay) checkoutOverlay.classList.add("active");
+  if (checkoutOverlay) {
+    checkoutOverlay.classList.add("active");
+    document.body.classList.add("cart-open");
+    const bubble = document.getElementById("mobile-cart-toast-bubble");
+    if (bubble) bubble.style.display = "none";
+  }
 }
 
 function closeCheckoutModal() {
   const checkoutOverlay = document.getElementById("checkout-overlay");
   if (checkoutOverlay) checkoutOverlay.classList.remove("active");
+  document.body.classList.remove("cart-open");
+  updateCartUI();
 }
 
 async function handleCheckoutSubmit(e) {
