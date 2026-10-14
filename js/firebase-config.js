@@ -185,6 +185,11 @@ const DEMO_PRODUCTS = [
     originalPrice: 280,
     badge: "مميز",
     image: "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=600&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=600&auto=format&fit=crop&q=80"
+    ],
     description: "وداعاً لرفع قوارير المياه الثقيلة وعناء الصب اليدوي! مضخة كهربائية تركب مباشرة على أي قارورة مياه وتعمل بلمسة زر ببطارية تدوم لأكثر من 5 قوارير بالشحنة الواحدة عبر USB.",
     features: [
       "مخرج ستانلس ستيل صحي وخالي من BPA",

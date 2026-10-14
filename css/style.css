@@ -807,6 +807,45 @@ img {
   transform: scale(1.06);
 }
 
+/* Product Card Auto-Slider (Flip multiple images on home page & deals) */
+.product-thumb img.card-slider-img {
+  transition: opacity 0.22s ease, transform 0.45s ease;
+}
+
+.card-slider-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.52);
+  padding: 3px 7px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 4;
+  pointer-events: none;
+  max-width: 85%;
+  overflow: hidden;
+}
+
+.card-slider-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  transition: all 0.25s ease;
+}
+
+.card-slider-dot.active {
+  background: #ffffff;
+  width: 14px;
+  border-radius: 999px;
+}
+
 /* Elegant Light Sheen Sweep Hover Effect on Product Cards */
 .product-thumb::after {
   content: '';

@@ -19,6 +19,7 @@ const AppState = {
   },
   appliedCoupon: null,
   activeProductModal: null,
+  cardSliderTimer: null,
 };
 
 // Initialize Application
@@ -150,10 +151,11 @@ function renderProducts() {
   }
 
   grid.innerHTML = filtered.map((prod) => createProductCardHTML(prod)).join("");
+  initProductCardSliders();
 }
 
 /**
- * Create Single Product Card HTML
+ * Create Single Product Card HTML (Supports multi-image auto slideshow)
  */
 function createProductCardHTML(prod) {
   const discountPercent =
@@ -161,13 +163,26 @@ function createProductCardHTML(prod) {
       ? Math.round(((prod.originalPrice - prod.price) / prod.originalPrice) * 100)
       : null;
 
+  // Multi-images support (up to 10 images)
+  const images = (Array.isArray(prod.images) && prod.images.length > 0)
+    ? prod.images.filter(Boolean).slice(0, 10)
+    : (prod.image ? [prod.image] : ["assets/logo.jpg"]);
+  const hasMultipleImages = images.length > 1;
+  const primaryImg = images[0] || "assets/logo.jpg";
+  const imagesEncoded = encodeURIComponent(JSON.stringify(images));
+
   return `
-    <article class="product-card" data-id="${prod.id}">
+    <article class="product-card" data-id="${prod.id}" data-has-slider="${hasMultipleImages ? 'true' : 'false'}" data-images="${imagesEncoded}" data-current-idx="0">
       <div class="product-thumb" onclick="window.location.href='product.html?id=${prod.id}'">
         ${prod.badge ? `<span class="product-badge">${prod.badge}</span>` : ""}
         ${discountPercent && !prod.badge ? `<span class="product-badge">خصم ${discountPercent}%</span>` : ""}
         ${prod.isDemo ? `<span class="badge-demo">تجريبي</span>` : ""}
-        <img src="${prod.image || 'assets/logo.jpg'}" alt="${prod.name}" loading="lazy" onerror="this.src='assets/logo.jpg'">
+        <img src="${primaryImg}" alt="${prod.name}" class="card-slider-img" loading="lazy" onerror="this.src='assets/logo.jpg'">
+        ${hasMultipleImages ? `
+          <div class="card-slider-dots">
+            ${images.map((_, idx) => `<span class="card-slider-dot ${idx === 0 ? 'active' : ''}"></span>`).join("")}
+          </div>
+        ` : ""}
       </div>
 
       <div class="product-details">
@@ -203,6 +218,53 @@ function createProductCardHTML(prod) {
       </div>
     </article>
   `;
+}
+
+/**
+ * 2.1 Product Cards Auto-Slider (Cycle multiple images automatically every 3.5s)
+ */
+function initProductCardSliders() {
+  if (AppState.cardSliderTimer) {
+    clearInterval(AppState.cardSliderTimer);
+    AppState.cardSliderTimer = null;
+  }
+
+  const sliderCards = document.querySelectorAll('.product-card[data-has-slider="true"]');
+  if (!sliderCards || sliderCards.length === 0) return;
+
+  AppState.cardSliderTimer = setInterval(() => {
+    sliderCards.forEach((card) => {
+      // Pause cycling while user is hovering over this card
+      if (card.matches(":hover")) return;
+
+      try {
+        const raw = card.getAttribute("data-images");
+        if (!raw) return;
+        const images = JSON.parse(decodeURIComponent(raw));
+        if (!images || images.length <= 1) return;
+
+        let currentIdx = parseInt(card.getAttribute("data-current-idx") || "0", 10);
+        const nextIdx = (currentIdx + 1) % images.length;
+        card.setAttribute("data-current-idx", nextIdx);
+
+        const img = card.querySelector(".card-slider-img");
+        if (img) {
+          img.style.opacity = "0.75";
+          setTimeout(() => {
+            img.src = images[nextIdx];
+            img.style.opacity = "1";
+          }, 110);
+        }
+
+        const dots = card.querySelectorAll(".card-slider-dot");
+        dots.forEach((dot, idx) => {
+          dot.classList.toggle("active", idx === nextIdx);
+        });
+      } catch (e) {
+        console.warn("Card slider error:", e);
+      }
+    });
+  }, 3500);
 }
 
 function getCategoryArabicName(cat) {

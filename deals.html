@@ -502,6 +502,9 @@
         }
 
         grid.innerHTML = deals.map(prod => createProductCardHTML(prod)).join("");
+        if (typeof initProductCardSliders === "function") {
+          initProductCardSliders();
+        }
       };
 
       if (AppState.products && AppState.products.length > 0) {
