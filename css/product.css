@@ -1261,3 +1261,12 @@ body.product-page {
     max-width: 145px !important;
   }
 }
+
+/* Stock Status & Preorder Warning Styles */
+#prod-stock-status-container {
+  width: 100%;
+}
+
+#preorder-red-warning-box {
+  animation: pulseLowStock 2s infinite ease-in-out;
+}

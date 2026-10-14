@@ -118,6 +118,111 @@ const ProductPage = {
     const discountPct = Math.round(((originalPrice - p.price) / originalPrice) * 100);
     if (badgeEl) badgeEl.textContent = `${discountPct}%`;
 
+    const availability = p.availability || "in_stock";
+    const stockCount = p.stockCount !== undefined && p.stockCount !== null ? Number(p.stockCount) : 50;
+    const isPreorder = availability === "preorder";
+    const isOutOfStock = availability === "out_of_stock";
+    const isLowStock = !isPreorder && !isOutOfStock && stockCount > 0 && stockCount <= 3;
+
+    // Render stock status banner/badge
+    const stockContainer = document.getElementById("prod-stock-status-container");
+    if (stockContainer) {
+      if (isPreorder) {
+        stockContainer.innerHTML = `
+          <div style="background:#fef3c7; border:1px solid #f59e0b; color:#b45309; padding:0.6rem 1rem; border-radius:8px; font-weight:800; font-size:0.95rem; display:flex; align-items:center; gap:0.5rem;">
+            <span>⏳</span>
+            <span>هذا المنتج متاح حالياً للحجز والطلب المسبق</span>
+          </div>
+        `;
+      } else if (isOutOfStock) {
+        stockContainer.innerHTML = `
+          <div style="background:#fee2e2; border:1px solid #ef4444; color:#b91c1c; padding:0.6rem 1rem; border-radius:8px; font-weight:800; font-size:0.95rem; display:flex; align-items:center; gap:0.5rem;">
+            <span>❌</span>
+            <span>نعتذر، هذا المنتج غير متوفر حالياً بالمخزن</span>
+          </div>
+        `;
+      } else if (isLowStock) {
+        stockContainer.innerHTML = `
+          <div style="background:#fef2f2; border:1px solid #f87171; color:#dc2626; padding:0.6rem 1rem; border-radius:8px; font-weight:800; font-size:0.95rem; display:flex; align-items:center; gap:0.5rem; animation:pulse 2s infinite;">
+            <span>🔥</span>
+            <span>أوشك على النفاذ! متبقي فقط ${stockCount} قطع في المخزن</span>
+          </div>
+        `;
+      } else {
+        stockContainer.innerHTML = `
+          <div style="background:#f0fdf4; border:1px solid #86efac; color:#166534; padding:0.5rem 0.85rem; border-radius:8px; font-weight:700; font-size:0.88rem; display:inline-flex; align-items:center; gap:0.4rem;">
+            <span>✅</span>
+            <span>متوفر بالمخزن - شحن فوري لجميع المحافظات</span>
+          </div>
+        `;
+      }
+    }
+
+    // Top action buttons and preorder UI
+    const topBuyBtn = document.getElementById("btn-top-buy");
+    const topCartBtn = document.getElementById("btn-add-to-cart-top");
+    const warningBox = document.getElementById("preorder-red-warning-box");
+    const formTitle = document.getElementById("order-form-title");
+    const bottomSubmitBtn = document.getElementById("btn-bottom-submit");
+    const offersSection = document.querySelector(".offers-section");
+    const calculationCard = document.querySelector(".calculation-card");
+
+    if (isPreorder) {
+      if (topBuyBtn) {
+        topBuyBtn.disabled = false;
+        topBuyBtn.style.background = "#f59e0b";
+        topBuyBtn.textContent = "حجز طلب مسبق ⏳";
+      }
+      if (topCartBtn) topCartBtn.style.display = "none";
+      if (warningBox) warningBox.style.display = "block";
+      if (formTitle) {
+        formTitle.innerHTML = `ادخل بياناتك وعند توفر منتج ( <strong>${p.name}</strong> ) سيصلك اشعار عبر واتساب ⏳`;
+      }
+      if (bottomSubmitBtn) {
+        bottomSubmitBtn.style.background = "#f59e0b";
+        bottomSubmitBtn.textContent = "تأكيد حجز الطلب المسبق ⏳";
+      }
+      if (offersSection) offersSection.style.display = "none";
+      if (calculationCard) calculationCard.style.display = "none";
+    } else if (isOutOfStock) {
+      if (topBuyBtn) {
+        topBuyBtn.disabled = true;
+        topBuyBtn.style.background = "#94a3b8";
+        topBuyBtn.style.cursor = "not-allowed";
+        topBuyBtn.textContent = "المنتج غير متوفر حالياً ❌";
+      }
+      if (topCartBtn) topCartBtn.style.display = "none";
+      if (warningBox) warningBox.style.display = "none";
+      if (offersSection) offersSection.style.display = "none";
+      if (calculationCard) calculationCard.style.display = "none";
+      const formContainer = document.getElementById("order-form-container");
+      if (formContainer) {
+        formContainer.innerHTML = `
+          <div style="text-align:center; padding:2.5rem 1.5rem; background:#ffffff; border-radius:12px; border:1px solid #e2e8f0;">
+            <div style="font-size:3rem; margin-bottom:1rem;">❌</div>
+            <h3 style="color:#b91c1c; font-weight:800; margin-bottom:0.5rem;">هذا المنتج غير متوفر حالياً</h3>
+            <p style="color:#64748b; font-size:0.95rem; margin-bottom:1.5rem;">نعتذر لعدم توفر كميات في المخزن في الوقت الحالي. يمكنك تصفح باقي المنتجات والعروض الرائعة.</p>
+            <a href="index.html" class="btn-primary" style="display:inline-block; padding:0.8rem 1.8rem; text-decoration:none;">تصفح باقي المنتجات</a>
+          </div>
+        `;
+      }
+    } else {
+      if (topBuyBtn) {
+        topBuyBtn.disabled = false;
+        topBuyBtn.style.background = "#175349";
+        topBuyBtn.textContent = "اضغط هنا للشراء 🛒";
+      }
+      if (topCartBtn) topCartBtn.style.display = "inline-flex";
+      if (warningBox) warningBox.style.display = "none";
+      if (formTitle) formTitle.textContent = "يرجى إدخال معلوماتك لإكمال الطلب 🚚";
+      if (bottomSubmitBtn) {
+        bottomSubmitBtn.style.background = "var(--primary)";
+        bottomSubmitBtn.textContent = "تأكيد واستكمال الطلب الآن 🚚";
+      }
+      if (offersSection) offersSection.style.display = "block";
+      if (calculationCard) calculationCard.style.display = "block";
+    }
+
     // Sales Copy
     this.renderSalesPitch(p);
 
@@ -664,6 +769,45 @@ const ProductPage = {
 
     if (!name || !phone || !gov || !address) {
       alert("يرجى ملء جميع الحقول المطلوبة (الاسم، الهاتف، المحافظة، العنوان)!");
+      return;
+    }
+
+    // Handle Pre-Order Mode Submission
+    if (this.currentProduct && this.currentProduct.availability === "preorder") {
+      const submitBtn = document.getElementById("btn-bottom-submit");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "جاري تسجيل الحجز المسبق...";
+      }
+
+      const preorderData = {
+        id: `pre_${Date.now()}`,
+        productId: this.currentProduct.id,
+        productName: this.currentProduct.name,
+        customerName: name,
+        customerPhone: phone,
+        governorate: gov,
+        address: address,
+        status: "pending",
+        timestamp: Date.now(),
+        createdAt: new Date().toLocaleString("ar-EG")
+      };
+
+      try {
+        if (typeof db !== "undefined" && db) {
+          await db.ref("preorders").push(preorderData);
+        }
+        alert(`شكراً لك يا ${name}! 🎉\nتم تسجيل حجزك المسبق بنجاح لمنتج (${this.currentProduct.name}).\nسنقوم بإشعارك عبر واتساب فور توفر المنتج بالمخزن!`);
+        window.location.href = "index.html";
+      } catch (err) {
+        console.error("Error saving preorder:", err);
+        alert("حدث خطأ أثناء تسجيل طلبك المسبق. يرجى المحاولة مرة أخرى.");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "تأكيد حجز الطلب المسبق ⏳";
+        }
+      }
       return;
     }
 

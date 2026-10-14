@@ -2763,5 +2763,32 @@ body.cart-open {
   overflow: hidden !important;
 }
 
+/* Pre-order & Low Stock Urgency Styles */
+@keyframes pulseLowStock {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 8px 3px rgba(220, 38, 38, 0.3);
+  }
+}
+
+.stock-tag.low-stock-tag {
+  animation: pulseLowStock 2s infinite ease-in-out;
+  display: inline-block;
+}
+
+.btn-preorder-cta {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-preorder-cta:hover {
+  background: #d97706 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4) !important;
+}
+
 
 

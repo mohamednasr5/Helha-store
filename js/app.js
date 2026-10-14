@@ -172,6 +172,57 @@ function createProductCardHTML(prod) {
   const primaryImg = images[0] || "assets/logo.jpg";
   const imagesEncoded = encodeURIComponent(JSON.stringify(images));
 
+  const availability = prod.availability || "in_stock";
+  const stockCount = prod.stockCount !== undefined && prod.stockCount !== null ? Number(prod.stockCount) : 50;
+  const isPreorder = availability === "preorder";
+  const isOutOfStock = availability === "out_of_stock";
+  const isLowStock = !isPreorder && !isOutOfStock && stockCount > 0 && stockCount <= 3;
+
+  let stockTagHTML = "";
+  if (isPreorder) {
+    stockTagHTML = `<span class="stock-tag preorder-tag" style="color:#d97706; font-weight:700;">⏳ متاح للطلب المسبق</span>`;
+  } else if (isOutOfStock) {
+    stockTagHTML = `<span class="stock-tag out-of-stock-tag" style="color:#dc2626; font-weight:700;">❌ غير متوفر حالياً</span>`;
+  } else if (isLowStock) {
+    stockTagHTML = `<span class="stock-tag low-stock-tag" style="color:#dc2626; font-weight:800; background:#fee2e2; padding:2px 6px; border-radius:4px; font-size:0.75rem;">🔥 أوشك على النفاذ! (${stockCount} فقط)</span>`;
+  } else {
+    stockTagHTML = `<span class="stock-tag">متوفر بالمخزن</span>`;
+  }
+
+  let actionsHTML = "";
+  if (isPreorder) {
+    actionsHTML = `
+      <div class="product-actions" style="display:flex; gap:0.5rem; align-items:center; margin-top: auto; padding-top: 0.65rem;">
+        <button type="button" class="btn-buy-now btn-preorder-cta" onclick="openPreorderModal('${prod.id}'); event.stopPropagation();" style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#f59e0b; color:#ffffff !important; font-weight:800; font-size:0.95rem; text-decoration:none; padding:0.8rem 0.75rem; border-radius:8px; border:none; cursor:pointer; box-shadow:0 4px 12px rgba(245,158,11,0.25);">
+          <span>طلب مسبق ⏳</span>
+        </button>
+      </div>
+    `;
+  } else if (isOutOfStock) {
+    actionsHTML = `
+      <div class="product-actions" style="display:flex; gap:0.5rem; align-items:center; margin-top: auto; padding-top: 0.65rem;">
+        <button type="button" class="btn-buy-now" disabled style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#94a3b8; color:#ffffff !important; font-weight:700; font-size:0.92rem; padding:0.8rem 0.75rem; border-radius:8px; border:none; cursor:not-allowed; opacity:0.85;">
+          <span>غير متوفر حالياً ❌</span>
+        </button>
+      </div>
+    `;
+  } else {
+    actionsHTML = `
+      <div class="product-actions" style="display:flex; gap:0.5rem; align-items:center; margin-top: auto; padding-top: 0.65rem;">
+        <a href="product.html?id=${prod.id}" class="btn-buy-now" style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#175349; color:#ffffff !important; font-weight:800; font-size:0.95rem; text-decoration:none; padding:0.8rem 0.75rem; border-radius:8px; box-shadow:0 4px 12px rgba(23,83,73,0.25);">
+          <span>اضغط هنا للشراء 🚚</span>
+        </a>
+        <button type="button" class="btn-card-quick-cart" onclick="addToCart('${prod.id}'); event.stopPropagation();" title="إضافة المنتج للسلة 🛒" aria-label="إضافة المنتج للسلة">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px;">
+            <circle cx="9" cy="21" r="1.5"></circle>
+            <circle cx="20" cy="21" r="1.5"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+        </button>
+      </div>
+    `;
+  }
+
   return `
     <article class="product-card" data-id="${prod.id}" data-has-slider="${hasMultipleImages ? 'true' : 'false'}" data-images="${imagesEncoded}" data-current-idx="0">
       <div class="product-thumb" onclick="window.location.href='product.html?id=${prod.id}'">
@@ -201,25 +252,91 @@ function createProductCardHTML(prod) {
             <span class="current-price">${prod.price} <small>ج.م</small></span>
             ${prod.originalPrice ? `<span class="old-price">${prod.originalPrice} ج.م</span>` : ""}
           </div>
-          <span class="stock-tag">متوفر بالمخزن</span>
+          ${stockTagHTML}
         </div>
 
-        <div class="product-actions" style="display:flex; gap:0.5rem; align-items:center; margin-top: auto; padding-top: 0.65rem;">
-          <a href="product.html?id=${prod.id}" class="btn-buy-now" style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#175349; color:#ffffff !important; font-weight:800; font-size:0.95rem; text-decoration:none; padding:0.8rem 0.75rem; border-radius:8px; box-shadow:0 4px 12px rgba(23,83,73,0.25);">
-            <span>اضغط هنا للشراء 🚚</span>
-          </a>
-          <button type="button" class="btn-card-quick-cart" onclick="addToCart('${prod.id}'); event.stopPropagation();" title="إضافة المنتج للسلة 🛒" aria-label="إضافة المنتج للسلة">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px;">
-              <circle cx="9" cy="21" r="1.5"></circle>
-              <circle cx="20" cy="21" r="1.5"></circle>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-          </button>
-        </div>
+        ${actionsHTML}
       </div>
     </article>
   `;
 }
+
+/**
+ * 2.0b Pre-Order Modal & Form Submission Handlers
+ */
+window.openPreorderModal = function(productId) {
+  const prod = (AppState.products || []).find(p => String(p.id) === String(productId));
+  const prodName = prod ? prod.name : "المنتج المطلوب";
+  
+  const modal = document.getElementById("preorder-modal-overlay");
+  const nameDisplay = document.getElementById("preorder-prod-name-display");
+  const idInput = document.getElementById("preorder-prod-id");
+  const nameInput = document.getElementById("preorder-prod-name");
+  
+  if (nameDisplay) nameDisplay.textContent = prodName;
+  if (idInput) idInput.value = productId;
+  if (nameInput) nameInput.value = prodName;
+  
+  if (modal) {
+    modal.classList.add("active");
+  }
+};
+
+window.closePreorderModal = function() {
+  const modal = document.getElementById("preorder-modal-overlay");
+  if (modal) modal.classList.remove("active");
+};
+
+window.submitPreorderForm = async function(e) {
+  e.preventDefault();
+  const prodId = document.getElementById("preorder-prod-id")?.value;
+  const prodName = document.getElementById("preorder-prod-name")?.value;
+  const name = document.getElementById("preorder-customer-name")?.value.trim();
+  const phone = document.getElementById("preorder-customer-phone")?.value.trim();
+  const gov = document.getElementById("preorder-gov")?.value;
+  const address = document.getElementById("preorder-customer-address")?.value.trim();
+  const btn = document.getElementById("btn-submit-preorder");
+
+  if (!name || !phone) {
+    alert("يرجى إدخال اسمك ورقم الواتساب!");
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "جاري تسجيل الحجز...";
+  }
+
+  const preorderData = {
+    id: `pre_${Date.now()}`,
+    productId: prodId,
+    productName: prodName,
+    customerName: name,
+    customerPhone: phone,
+    governorate: gov || "غير محدد",
+    address: address || "",
+    status: "pending",
+    timestamp: Date.now(),
+    createdAt: new Date().toLocaleString("ar-EG")
+  };
+
+  try {
+    if (typeof db !== "undefined" && db) {
+      await db.ref("preorders").push(preorderData);
+    }
+    closePreorderModal();
+    document.getElementById("preorder-form")?.reset();
+    alert(`شكراً لك يا ${name}! 🎉\nتم تسجيل حجزك المسبق بنجاح لمنتج (${prodName}).\nسنقوم بإشعارك عبر واتساب فور توفر المنتج بالمخزن!`);
+  } catch (err) {
+    console.error("Preorder submission error:", err);
+    alert("حدث خطأ أثناء تسجيل طلبك، يرجى المحاولة مرة أخرى.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "تأكيد حجز الطلب المسبق ⏳";
+    }
+  }
+};
 
 /**
  * 2.1 Product Cards Auto-Slider (Cycle multiple images automatically every 3.5s)
@@ -1102,6 +1219,7 @@ function setupEventListeners() {
     if (e.target.id === "cart-overlay") closeCartDrawer();
     if (e.target.id === "quick-view-overlay") closeQuickView();
     if (e.target.id === "checkout-overlay") closeCheckoutModal();
+    if (e.target.id === "preorder-modal-overlay") closePreorderModal();
     if (e.target.id === "success-overlay") closeSuccessModal();
   });
 }

@@ -21,9 +21,11 @@ const AdminState = {
   messages: [],
   currentProductCategoryFilter: "all",
   currentOrderFilter: "all",
+  currentPreorderFilter: "all",
   editingProductId: null,
   currentProductImages: [],
   heroBannersList: [],
+  preorders: [],
   workerUrl: "https://spyone.nonm1724.workers.dev",
   r2PublicUrl: "https://pub-a9759aa27af1490f9ac3ee12ed967379.r2.dev"
 };
@@ -180,6 +182,22 @@ function initDashboard() {
     if (typeof AdminAnalytics !== "undefined") {
       AdminAnalytics.onAnalyticsUpdated(AdminState.analytics);
     }
+  });
+
+  // 3b. Sync Pre-orders (الطلبات المسبقة)
+  db.ref("preorders").on("value", (snap) => {
+    const data = snap.val();
+    if (data) {
+      AdminState.preorders = Object.keys(data).map(key => ({
+        ...data[key],
+        firebaseKey: key,
+        id: data[key].id || key
+      })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    } else {
+      AdminState.preorders = [];
+    }
+    updatePreordersBadgeCount();
+    renderPreordersTable();
   });
 
   // 4. Load Settings & Categories & Messages & Shipping & Coupons
@@ -443,7 +461,7 @@ function renderAdminProducts() {
         ${p.category === 'deals' ? `<span style="background:#fef2f2; color:#ef4444; font-weight:700; padding:3px 8px; border-radius:6px; font-size:0.82rem;">🔥 عروض التوفير</span>` : (p.categoryName || getCategoryArabicName(p.category))}
       </td>
       <td><strong>${p.price} ج.م</strong> ${p.originalPrice ? `<span style="text-decoration:line-through; font-size:0.8rem; color:var(--text-muted);">${p.originalPrice}</span>` : ""}</td>
-      <td>${p.stockCount || 50} قطعة</td>
+      <td>${renderAdminProductStock(p)}</td>
       <td>
         <div style="display:flex; gap:0.4rem;">
           <button class="btn-admin-action" style="background:#e0f2fe; color:#0284c7; padding:4px 8px;" onclick="openEditProductModal('${p.id}')">✏️ تعديل</button>
@@ -452,6 +470,28 @@ function renderAdminProducts() {
       </td>
     </tr>
   `).join("");
+}
+
+function renderAdminProductStock(p) {
+  const avail = p.availability || "in_stock";
+  if (avail === "preorder") {
+    return `<span style="background:#fef3c7; color:#b45309; padding:4px 8px; border-radius:6px; font-size:0.78rem; font-weight:700; display:inline-block;">⏳ متاح للطلب المسبق</span>`;
+  }
+  if (avail === "out_of_stock") {
+    return `<span style="background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:6px; font-size:0.78rem; font-weight:700; display:inline-block;">❌ غير متوفر</span>`;
+  }
+  const stock = p.stockCount !== undefined && p.stockCount !== null ? Number(p.stockCount) : 50;
+  if (stock <= 3) {
+    return `
+      <div>
+        <span style="font-weight:700;">${stock} قطعة</span>
+        <div style="font-size:0.72rem; background:#fee2e2; color:#dc2626; padding:2px 6px; border-radius:4px; font-weight:800; margin-top:3px; display:inline-block;">
+          🔥 أوشك على النفاذ!
+        </div>
+      </div>
+    `;
+  }
+  return `<span>${stock} قطعة</span>`;
 }
 
 function getCategoryArabicName(cat) {
@@ -587,6 +627,20 @@ function collectProductOffers() {
   return offers;
 }
 
+function handleProductAvailabilityChange() {
+  const avail = document.getElementById("prod-availability")?.value || "in_stock";
+  const stockGroup = document.getElementById("prod-stock-group");
+  const stockHint = document.getElementById("prod-stock-hint");
+  if (!stockGroup) return;
+
+  if (avail === "in_stock") {
+    stockGroup.style.display = "block";
+    if (stockHint) stockHint.style.display = "block";
+  } else {
+    stockGroup.style.display = "none";
+  }
+}
+
 function openAddProductModal() {
   AdminState.editingProductId = null;
   document.getElementById("product-modal-title").textContent = "إضافة منتج جديد لحِلها";
@@ -596,6 +650,11 @@ function openAddProductModal() {
   document.getElementById("prod-price").value = "";
   document.getElementById("prod-original-price").value = "";
   document.getElementById("prod-badge").value = "";
+  
+  const availSelect = document.getElementById("prod-availability");
+  if (availSelect) availSelect.value = "in_stock";
+  handleProductAvailabilityChange();
+
   document.getElementById("prod-stock").value = "50";
   document.getElementById("prod-desc").value = "";
   document.getElementById("prod-features").value = "";
@@ -627,6 +686,11 @@ function openEditProductModal(productId) {
   document.getElementById("prod-price").value = prod.price || "";
   document.getElementById("prod-original-price").value = prod.originalPrice || "";
   document.getElementById("prod-badge").value = prod.badge || "";
+
+  const availSelect = document.getElementById("prod-availability");
+  if (availSelect) availSelect.value = prod.availability || "in_stock";
+  handleProductAvailabilityChange();
+
   document.getElementById("prod-stock").value = prod.stockCount || "50";
   document.getElementById("prod-desc").value = prod.description || "";
   document.getElementById("prod-features").value = (prod.features || []).join("\n");
@@ -670,6 +734,7 @@ async function handleSaveProduct(e) {
   const price = Number(document.getElementById("prod-price").value);
   const originalPrice = Number(document.getElementById("prod-original-price").value) || null;
   const badge = document.getElementById("prod-badge").value.trim();
+  const availability = document.getElementById("prod-availability")?.value || "in_stock";
   const stockCount = Number(document.getElementById("prod-stock").value) || 50;
   const description = document.getElementById("prod-desc").value.trim();
   const featuresText = document.getElementById("prod-features").value.trim();
@@ -707,6 +772,7 @@ async function handleSaveProduct(e) {
     price: price,
     originalPrice: originalPrice,
     badge: badge,
+    availability: availability,
     stockCount: stockCount,
     description: description,
     features: features,
@@ -1650,6 +1716,8 @@ function setupAdminNavigation() {
         renderAdminOrders();
       } else if (targetTab === "products") {
         renderAdminProducts();
+      } else if (targetTab === "preorders") {
+        renderPreordersTable();
       } else if (targetTab === "shipping") {
         renderShippingSettings();
       } else if (targetTab === "coupons") {
@@ -1675,6 +1743,158 @@ function setupAdminNavigation() {
       renderAdminOrders();
     });
   });
+}
+
+/**
+ * 8b. Pre-Orders Management (الطلبات المسبقة)
+ */
+function updatePreordersBadgeCount() {
+  const badge = document.getElementById("preorders-badge-count");
+  if (!badge) return;
+  const pendingCount = (AdminState.preorders || []).filter(p => p.status !== "notified").length;
+  if (pendingCount > 0) {
+    badge.textContent = pendingCount;
+    badge.style.display = "inline-block";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+function filterPreorders(filter) {
+  AdminState.currentPreorderFilter = filter;
+  const buttons = document.querySelectorAll(".preorder-filter-btn");
+  buttons.forEach(btn => {
+    if (btn.getAttribute("data-filter") === filter) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+  renderPreordersTable();
+}
+
+function renderPreordersTable() {
+  const tbody = document.getElementById("admin-preorders-tbody");
+  if (!tbody) return;
+
+  const filter = AdminState.currentPreorderFilter || "all";
+  const preorders = (AdminState.preorders || []).filter(item => {
+    if (filter === "all") return true;
+    if (filter === "pending") return item.status !== "notified";
+    if (filter === "notified") return item.status === "notified";
+    return true;
+  });
+
+  if (preorders.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding:2.5rem; color:var(--text-muted);">
+          ${filter === "all" ? "لا توجد أي حجوزات طلب مسبق مسجلة حتى الآن." : "لا توجد طلبات مطابقة لهذا الفلتر."}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = preorders.map(item => {
+    const isNotified = item.status === "notified";
+    const statusBadge = isNotified
+      ? `<span class="status-badge" style="background:#dcfce7; color:#15803d; font-weight:700;">تم الإشعار ✅</span>`
+      : `<span class="status-badge" style="background:#fef3c7; color:#b45309; font-weight:700;">قيد الانتظار ⏳</span>`;
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:700;">${item.createdAt || "-"}</div>
+          ${item.notifiedAt ? `<div style="font-size:0.75rem; color:#15803d; margin-top:2px;">أُشعر في: ${item.notifiedAt.split("T")[0]}</div>` : ""}
+        </td>
+        <td>
+          <strong>${escapeHtml(item.productName || "منتج غير محدد")}</strong>
+          ${item.productId ? `<div style="font-size:0.75rem; color:var(--text-muted);">(كود: ${escapeHtml(item.productId)})</div>` : ""}
+        </td>
+        <td>
+          <strong>${escapeHtml(item.customerName || "-")}</strong>
+        </td>
+        <td>
+          <a href="tel:${escapeHtml(item.customerPhone || '')}" dir="ltr" style="font-weight:700; color:var(--primary); text-decoration:none;">${escapeHtml(item.customerPhone || "-")}</a>
+        </td>
+        <td>
+          <div>${escapeHtml(item.governorate || "-")}</div>
+          <div style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(item.address || "")}</div>
+        </td>
+        <td>
+          ${statusBadge}
+        </td>
+        <td>
+          <div style="display:flex; gap:0.4rem; align-items:center;">
+            <button class="btn-admin-action" style="background:#25d366; color:#ffffff; font-weight:700; padding:6px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; border:none; cursor:pointer;" onclick="sendWhatsAppPreorderNotification('${item.firebaseKey}')" title="إرسال إشعار توفر المنتج عبر واتساب">
+              <span>💬</span>
+              <span>إشعار واتساب</span>
+            </button>
+            <button class="btn-admin-action" style="background:#fee2e2; color:#b91c1c; padding:6px 10px; border-radius:6px; border:none; cursor:pointer;" onclick="deletePreorder('${item.firebaseKey}')" title="حذف الحجز">
+              🗑️
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function sendWhatsAppPreorderNotification(key) {
+  const item = (AdminState.preorders || []).find(p => p.firebaseKey === key || p.id === key);
+  if (!item) return;
+
+  // Clean and normalize phone number for WhatsApp
+  let phone = (item.customerPhone || "").replace(/\D/g, "");
+  if (phone.startsWith("0")) {
+    phone = "2" + phone;
+  } else if (!phone.startsWith("2") && phone.length === 10) {
+    phone = "20" + phone;
+  }
+
+  // Construct direct link to product
+  const baseUrl = window.location.origin + window.location.pathname.replace(/\/admin\.html.*/i, "");
+  const productUrl = `${baseUrl}/product.html?id=${encodeURIComponent(item.productId || "")}`;
+
+  // Message template requested by user:
+  // عملينا العزيز عميل متجر حلها نذكركم بتوفر منتج ( اسم المنتج ) 
+  // يمكنك الطلب الان من موقعنا
+  // رابط مباشر للمنتج 
+  // شكراً لثقتكم فى حلها
+  // كل مشكلة ليها حلّها مع متجر حِلها
+  const prodName = item.productName || "المنتج";
+  const message = `عميلنا العزيز عميل متجر حلها، نذكركم بتوفر منتج ( ${prodName} ) 🌟\n\nيمكنك الطلب الآن من موقعنا عبر الرابط المباشر:\n${productUrl}\n\nشكراً لثقتكم فى حلها 💖\nكل مشكلة ليها حلّها مع متجر حِلها 💡`;
+
+  const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+  // Mark status as notified in Firebase
+  try {
+    if (typeof db !== "undefined" && db && item.firebaseKey) {
+      await db.ref(`preorders/${item.firebaseKey}`).update({
+        status: "notified",
+        notifiedAt: new Date().toISOString()
+      });
+      showAdminToast("تم تحديث حالة الحجز إلى 'تم الإشعار' ✅ وجاري فتح واتساب...");
+    }
+  } catch (err) {
+    console.error("Error updating preorder status:", err);
+  }
+
+  // Open WhatsApp in a new tab
+  window.open(waUrl, "_blank");
+}
+
+async function deletePreorder(key) {
+  if (!confirm("هل أنت متأكد من حذف هذا الحجز المسبق نهائياً؟")) return;
+  try {
+    if (typeof db !== "undefined" && db && key) {
+      await db.ref(`preorders/${key}`).remove();
+      showAdminToast("تم حذف الحجز بنجاح 🗑️");
+    }
+  } catch (err) {
+    alert("حدث خطأ أثناء الحذف: " + err.message);
+  }
 }
 
 function showAdminToast(msg) {

@@ -368,6 +368,85 @@
     </div>
   </div>
 
+  <!-- Pre-order Modal (حجز طلب مسبق) -->
+  <div id="preorder-modal-overlay" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="preorder-modal-title" style="font-size:1.15rem; font-weight:800; color:var(--primary); margin:0;">حجز طلب مسبق ⏳</h3>
+        <button class="modal-close-btn" onclick="closePreorderModal()" aria-label="إغلاق">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem;">
+        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:0.85rem 1rem; margin-bottom:1rem; text-align:center;">
+          <p id="preorder-product-headline" style="margin:0; font-size:0.95rem; font-weight:700; color:#166534;">
+            ادخل بياناتك وعند توفر منتج (<span id="preorder-prod-name-display">...</span>) سيصلك اشعار عبر واتساب ⏳
+          </p>
+        </div>
+
+        <div style="background:#fef2f2; border:2px solid #ef4444; border-radius:10px; padding:0.85rem 1rem; margin-bottom:1.25rem; text-align:center; color:#b91c1c; font-weight:800; font-size:0.95rem;">
+          ⚠️ تنبيه باللون الأحمر: لابد من توفر رقم واتساب لاشعارك فور توفر المنتج!
+        </div>
+
+        <form id="preorder-form" onsubmit="submitPreorderForm(event)">
+          <input type="hidden" id="preorder-prod-id" value="">
+          <input type="hidden" id="preorder-prod-name" value="">
+
+          <div class="checkout-input-group" style="margin-bottom:0.9rem;">
+            <label class="checkout-label" for="preorder-customer-name" style="display:block; margin-bottom:0.35rem; font-weight:700;">اسمك بالكامل *</label>
+            <input type="text" id="preorder-customer-name" class="checkout-input" placeholder="اكتب اسمك الثلاثي" required style="width:100%; padding:0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.95rem;">
+          </div>
+
+          <div class="checkout-input-group" style="margin-bottom:0.9rem;">
+            <label class="checkout-label" for="preorder-customer-phone" style="display:block; margin-bottom:0.35rem; font-weight:700;">رقم الهاتف (الواتساب) *</label>
+            <input type="tel" id="preorder-customer-phone" class="checkout-input" placeholder="010XXXXXXXX" dir="ltr" style="text-align:right; width:100%; padding:0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.95rem;" required>
+          </div>
+
+          <div class="checkout-input-group" style="margin-bottom:0.9rem;">
+            <label class="checkout-label" for="preorder-gov" style="display:block; margin-bottom:0.35rem; font-weight:700;">المحافظة *</label>
+            <select id="preorder-gov" class="checkout-select" required style="width:100%; padding:0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.95rem;">
+              <option value="" disabled selected>اختر المحافظة...</option>
+              <option value="القاهرة">القاهرة</option>
+              <option value="الجيزة">الجيزة</option>
+              <option value="الإسكندرية">الإسكندرية</option>
+              <option value="الدقهلية">الدقهلية</option>
+              <option value="الشرقية">الشرقية</option>
+              <option value="القليوبية">القليوبية</option>
+              <option value="المنوفية">المنوفية</option>
+              <option value="الغربية">الغربية</option>
+              <option value="كفر الشيخ">كفر الشيخ</option>
+              <option value="البحيرة">البحيرة</option>
+              <option value="دمياط">دمياط</option>
+              <option value="بورسعيد">بورسعيد</option>
+              <option value="الإسماعيلية">الإسماعيلية</option>
+              <option value="السويس">السويس</option>
+              <option value="الفيوم">الفيوم</option>
+              <option value="بني سويف">بني سويف</option>
+              <option value="المنيا">المنيا</option>
+              <option value="أسيوط">أسيوط</option>
+              <option value="سوهاج">سوهاج</option>
+              <option value="قنا">قنا</option>
+              <option value="الأقصر">الأقصر</option>
+              <option value="أسوان">أسوان</option>
+              <option value="البحر الأحمر">البحر الأحمر</option>
+              <option value="شمال سيناء">شمال سيناء</option>
+              <option value="جنوب سيناء">جنوب سيناء</option>
+              <option value="الوادي الجديد">الوادي الجديد</option>
+              <option value="مطروح">مطروح</option>
+            </select>
+          </div>
+
+          <div class="checkout-input-group" style="margin-bottom:1.25rem;">
+            <label class="checkout-label" for="preorder-customer-address" style="display:block; margin-bottom:0.35rem; font-weight:700;">العنوان بالتفصيل أو أي ملاحظات</label>
+            <input type="text" id="preorder-customer-address" class="checkout-input" placeholder="المدينة، الشارع، رقم المبنى..." style="width:100%; padding:0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.95rem;">
+          </div>
+
+          <button type="submit" id="btn-submit-preorder" class="btn-primary" style="width:100%; justify-content:center; padding:0.85rem; font-size:1.05rem; font-weight:800; background:#f59e0b; color:#ffffff; border:none; border-radius:8px; cursor:pointer; box-shadow:0 4px 12px rgba(245,158,11,0.3);">
+            تأكيد حجز الطلب المسبق ⏳
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Order Success Modal -->
   <div id="success-overlay" class="modal-overlay">
     <div class="modal-dialog" style="max-width: 480px;">
