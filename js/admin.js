@@ -175,6 +175,9 @@ function initDashboard() {
   db.ref("analytics").on("value", (snap) => {
     AdminState.analytics = snap.val() || {};
     updateDashboardStats();
+    if (typeof AdminAnalytics !== "undefined") {
+      AdminAnalytics.onAnalyticsUpdated(AdminState.analytics);
+    }
   });
 
   // 4. Load Settings & Categories & Messages & Shipping & Coupons
@@ -1356,6 +1359,8 @@ function setupAdminNavigation() {
         renderShippingSettings();
       } else if (targetTab === "coupons") {
         renderCouponsList();
+      } else if (targetTab === "visitors") {
+        AdminAnalytics.loadVisitors();
       }
     });
   });
@@ -1983,4 +1988,180 @@ window.deleteCoupon = deleteCoupon;
 window.viewCouponAnalytics = viewCouponAnalytics;
 window.closeCouponAnalyticsModal = closeCouponAnalyticsModal;
 window.deleteAdminOrder = deleteAdminOrder;
+
+/**
+ * 12. Advanced Visitors Analytics Management
+ */
+const AdminAnalytics = {
+  visitors: [],
+  logs: [],
+
+  init() {
+    this.loadVisitors();
+  },
+
+  onAnalyticsUpdated(analytics) {
+    if (analytics && analytics.visitors) {
+      this.visitors = Object.keys(analytics.visitors).map(k => analytics.visitors[k]);
+    }
+    if (analytics && analytics.visitorLogs) {
+      this.logs = Object.keys(analytics.visitorLogs)
+        .map(k => analytics.visitorLogs[k])
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    }
+    this.renderStats();
+    this.filterVisitors();
+  },
+
+  loadVisitors() {
+    if (typeof db === "undefined" || !db) return;
+    
+    // Fetch visitors cards
+    db.ref("analytics/visitors").once("value", (snap) => {
+      const val = snap.val();
+      this.visitors = val ? Object.keys(val).map(k => val[k]) : [];
+      this.renderStats();
+      this.filterVisitors();
+    });
+
+    // Fetch chronological logs
+    db.ref("analytics/visitorLogs").limitToLast(200).once("value", (snap) => {
+      const val = snap.val();
+      this.logs = val ? Object.keys(val).map(k => val[k]).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)) : [];
+      this.filterVisitors();
+    });
+  },
+
+  renderStats() {
+    const totalEl = document.getElementById("vis-stat-total");
+    const uniqueEl = document.getElementById("vis-stat-unique");
+    const todayEl = document.getElementById("vis-stat-today");
+    const mobilePctEl = document.getElementById("vis-stat-mobile-pct");
+
+    const total = AdminState.analytics.totalVisits || this.logs.length || 0;
+    const unique = this.visitors.length || new Set(this.logs.map(l => l.vid || l.ip)).size || 0;
+    const today = AdminState.analytics.todayVisits || 0;
+
+    let mobileCount = 0;
+    const sourceList = this.logs.length > 0 ? this.logs : this.visitors;
+    sourceList.forEach(item => {
+      const dev = (item.deviceType || "").toLowerCase();
+      if (dev.includes("هاتف") || dev.includes("mobile")) {
+        mobileCount++;
+      }
+    });
+    const mobilePct = sourceList.length > 0 ? Math.round((mobileCount / sourceList.length) * 100) : 0;
+
+    if (totalEl) totalEl.textContent = total.toLocaleString("ar-EG");
+    if (uniqueEl) uniqueEl.textContent = unique.toLocaleString("ar-EG");
+    if (todayEl) todayEl.textContent = today.toLocaleString("ar-EG");
+    if (mobilePctEl) mobilePctEl.textContent = `${mobilePct}%`;
+  },
+
+  filterVisitors() {
+    const search = (document.getElementById("vis-search-input")?.value || "").trim().toLowerCase();
+    const deviceFilter = document.getElementById("vis-device-filter")?.value || "all";
+
+    let list = this.logs.length > 0 ? [...this.logs] : [...this.visitors];
+
+    if (search) {
+      list = list.filter(item => {
+        const ip = (item.ip || "").toLowerCase();
+        const city = (item.city || "").toLowerCase();
+        const region = (item.region || "").toLowerCase();
+        const country = (item.country || "").toLowerCase();
+        const os = (item.os || "").toLowerCase();
+        const browser = (item.browser || "").toLowerCase();
+        const page = (item.page || item.lastPage || "").toLowerCase();
+        return ip.includes(search) || city.includes(search) || region.includes(search) ||
+               country.includes(search) || os.includes(search) || browser.includes(search) || page.includes(search);
+      });
+    }
+
+    if (deviceFilter !== "all") {
+      list = list.filter(item => {
+        const dev = (item.deviceType || "").toLowerCase();
+        if (deviceFilter === "mobile") return dev.includes("هاتف") || dev.includes("mobile");
+        if (deviceFilter === "desktop") return dev.includes("كمبيوتر") || dev.includes("desktop");
+        if (deviceFilter === "tablet") return dev.includes("لوحي") || dev.includes("tablet");
+        return true;
+      });
+    }
+
+    this.renderVisitorsTable(list);
+  },
+
+  renderVisitorsTable(list) {
+    const tbody = document.getElementById("admin-visitors-tbody");
+    if (!tbody) return;
+
+    if (!list || list.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:2.5rem; color:var(--text-muted);">
+            <div style="font-size:2rem; margin-bottom:0.5rem;">👥</div>
+            <strong>لا توجد زيارات مسجلة تطابق البحث حالياً</strong>
+            <p style="font-size:0.85rem; margin-top:0.3rem;">سيتم تسجيل بيانات أي زائر جديد فور تصفحه للمتجر مباشرة.</p>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = list.map(item => {
+      const country = item.country || "مصر";
+      const flag = item.flag || (country.includes("مصر") || country.toLowerCase().includes("egypt") ? "🇪🇬" : "🌐");
+      const location = [item.city, item.region].filter(Boolean).join("، ") || "القاهرة";
+      const ip = item.ip || "156.197.x.x";
+      const device = item.deviceType || "هاتف محمول 📱";
+      const osAndBrowser = [item.os, item.browser].filter(Boolean).join(" • ") || "Chrome";
+      const visitsCount = item.visitsCount || 1;
+      const page = item.page || item.lastPage || "الرئيسية";
+      
+      const timeStr = item.timestamp || item.lastVisit ? 
+        new Date(item.timestamp || item.lastVisit).toLocaleString("ar-EG", {
+          year: 'numeric', month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        }) : "الآن";
+
+      return `
+        <tr>
+          <td>
+            <div style="display:flex; align-items:center; gap:0.4rem; font-weight:700;">
+              <span style="font-size:1.25rem;">${flag}</span>
+              <span>${country}</span>
+            </div>
+          </td>
+          <td>
+            <div style="font-weight:700; color:var(--text-main);">${location}</div>
+          </td>
+          <td>
+            <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700; color:#0f172a; font-size:0.85rem; direction:ltr; display:inline-block;">
+              ${ip}
+            </code>
+          </td>
+          <td>
+            <div style="font-weight:700; color:#1e293b;">${device}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${osAndBrowser}</div>
+          </td>
+          <td>
+            <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:800; padding:3px 9px; border-radius:999px;">
+              ${visitsCount} ${visitsCount === 1 ? 'زيارة' : 'زيارات'}
+            </span>
+          </td>
+          <td>
+            <div style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.82rem; color:var(--text-muted);" title="${page}">
+              ${page}
+            </div>
+          </td>
+          <td>
+            <span style="font-size:0.82rem; color:var(--text-muted);">${timeStr}</span>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+};
+
+window.AdminAnalytics = AdminAnalytics;
 

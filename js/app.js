@@ -188,10 +188,17 @@ function createProductCardHTML(prod) {
           <span class="stock-tag">متوفر بالمخزن</span>
         </div>
 
-        <div class="product-actions" style="grid-template-columns: 1fr; margin-top: auto; padding-top: 0.65rem;">
-          <a href="product.html?id=${prod.id}" class="btn-buy-now" style="display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#175349; color:#ffffff !important; font-weight:800; font-size:0.95rem; text-decoration:none; padding:0.8rem 1rem; border-radius:8px; box-shadow:0 4px 12px rgba(23,83,73,0.25); width:100%;">
+        <div class="product-actions" style="display:flex; gap:0.5rem; align-items:center; margin-top: auto; padding-top: 0.65rem;">
+          <a href="product.html?id=${prod.id}" class="btn-buy-now" style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#175349; color:#ffffff !important; font-weight:800; font-size:0.95rem; text-decoration:none; padding:0.8rem 0.75rem; border-radius:8px; box-shadow:0 4px 12px rgba(23,83,73,0.25);">
             <span>اضغط هنا للشراء 🚚</span>
           </a>
+          <button type="button" class="btn-card-quick-cart" onclick="addToCart('${prod.id}'); event.stopPropagation();" title="إضافة المنتج للسلة 🛒" aria-label="إضافة المنتج للسلة">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px;">
+              <circle cx="9" cy="21" r="1.5"></circle>
+              <circle cx="20" cy="21" r="1.5"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+          </button>
         </div>
       </div>
     </article>
@@ -288,6 +295,30 @@ function updateCartUI() {
   if (mobBadge) {
     mobBadge.textContent = totalCount;
     mobBadge.style.display = totalCount > 0 ? "flex" : "none";
+  }
+
+  // Mobile Bottom Nav Cart Glow & "يوجد منتجات في السلة بانتظارك" Floating Bubble
+  const mobCartNavItems = document.querySelectorAll('.mobile-bottom-nav a[href*="#cart"], .mobile-bottom-nav a[href*="cart"]');
+  let cartBubble = document.getElementById("mobile-cart-toast-bubble");
+
+  if (totalCount > 0) {
+    mobCartNavItems.forEach(item => item.classList.add("cart-glowing"));
+    if (!cartBubble) {
+      cartBubble = document.createElement("a");
+      cartBubble.id = "mobile-cart-toast-bubble";
+      cartBubble.className = "mobile-cart-toast-bubble";
+      cartBubble.href = "javascript:void(0)";
+      cartBubble.onclick = (e) => {
+        e.preventDefault();
+        if (typeof openCartDrawer === "function") openCartDrawer();
+      };
+      document.body.appendChild(cartBubble);
+    }
+    cartBubble.innerHTML = `<span>🛒 يوجد منتجات في السلة بانتظارك</span> <strong>(${totalCount})</strong>`;
+    cartBubble.style.display = "flex";
+  } else {
+    mobCartNavItems.forEach(item => item.classList.remove("cart-glowing"));
+    if (cartBubble) cartBubble.style.display = "none";
   }
 
   const subtotal = getCartSubtotal();
@@ -736,17 +767,169 @@ function closeSuccessModal() {
 }
 
 /**
- * 6. Visitor Analytics Tracker
+ * 6. Visitor Analytics Tracker (Advanced Geolocation, IP, Device, and Visits Counter)
  */
-function trackVisitor() {
-  const visited = sessionStorage.getItem("helha_visited");
-  if (!visited) {
-    sessionStorage.setItem("helha_visited", "true");
-    if (typeof db !== "undefined" && db) {
-      db.ref("analytics/totalVisits").transaction((current) => (current || 0) + 1);
-      db.ref("analytics/todayVisits").transaction((current) => (current || 0) + 1);
+const VisitorAnalytics = {
+  getDeviceInfo() {
+    const ua = navigator.userAgent || "";
+    let deviceType = "كمبيوتر 💻";
+    const isMobile = /mobile|iphone|ipod|android.*mobile/i.test(ua);
+    const isTablet = /ipad|tablet|(android(?!.*mobile))/i.test(ua);
+    
+    if (isTablet) {
+      deviceType = "جهاز لوحي 📟";
+    } else if (isMobile || window.innerWidth <= 768) {
+      deviceType = "هاتف محمول 📱";
+    }
+
+    let os = "غير معروف";
+    if (/android/i.test(ua)) os = "Android";
+    else if (/iphone|ipad|ipod/i.test(ua)) os = "iOS";
+    else if (/windows nt 10/i.test(ua)) os = "Windows 10/11";
+    else if (/windows/i.test(ua)) os = "Windows";
+    else if (/macintosh|mac os x/i.test(ua)) os = "macOS";
+    else if (/linux/i.test(ua)) os = "Linux";
+
+    let browser = "متصفح الويب";
+    if (/edg/i.test(ua)) browser = "Edge";
+    else if (/chrome|crios/i.test(ua)) browser = "Chrome";
+    else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = "Safari";
+    else if (/firefox|fxios/i.test(ua)) browser = "Firefox";
+    else if (/samsungbrowser/i.test(ua)) browser = "Samsung Browser";
+    else if (/opera|opr/i.test(ua)) browser = "Opera";
+
+    return {
+      deviceType,
+      os,
+      browser,
+      screen: `${window.screen.width}x${window.screen.height}`
+    };
+  },
+
+  async fetchGeoIP() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch("https://ipwho.is/", { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success !== false) {
+          return {
+            ip: data.ip || "غير معروف",
+            country: data.country || "مصر",
+            countryCode: data.country_code || "EG",
+            city: data.city || "القاهرة",
+            region: data.region || "محافظة القاهرة",
+            flag: data.flag ? data.flag.emoji : "🇪🇬"
+          };
+        }
+      }
+    } catch (e) {
+      // Fallback
+    }
+
+    try {
+      const res = await fetch("https://api.ipify.org?format=json");
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          ip: data.ip || "غير معروف",
+          country: "مصر",
+          countryCode: "EG",
+          city: "القاهرة",
+          region: "محافظة القاهرة",
+          flag: "🇪🇬"
+        };
+      }
+    } catch (e) {
+      // Fallback default
+    }
+
+    return {
+      ip: "156.197.x.x",
+      country: "مصر",
+      countryCode: "EG",
+      city: "القاهرة",
+      region: "محافظة القاهرة",
+      flag: "🇪🇬"
+    };
+  },
+
+  async recordVisit(pageName = "") {
+    try {
+      let vid = localStorage.getItem("helha_vid");
+      if (!vid) {
+        vid = "v_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 7);
+        localStorage.setItem("helha_vid", vid);
+      }
+
+      const sessionVisited = sessionStorage.getItem("helha_session_visited");
+      let visitCount = parseInt(localStorage.getItem("helha_visit_count") || "0", 10);
+      
+      if (!sessionVisited) {
+        visitCount += 1;
+        localStorage.setItem("helha_visit_count", String(visitCount));
+        sessionStorage.setItem("helha_session_visited", "true");
+
+        if (typeof db !== "undefined" && db) {
+          db.ref("analytics/totalVisits").transaction((c) => (c || 0) + 1);
+          db.ref("analytics/todayVisits").transaction((c) => (c || 0) + 1);
+        }
+      }
+
+      const dev = this.getDeviceInfo();
+      const geo = await this.fetchGeoIP();
+      const currentPage = pageName || document.title || "المتجر الرئيسي";
+      const now = Date.now();
+
+      if (typeof db !== "undefined" && db) {
+        db.ref(`analytics/visitors/${vid}`).update({
+          vid: vid,
+          ip: geo.ip,
+          country: geo.country,
+          countryCode: geo.countryCode,
+          flag: geo.flag,
+          city: geo.city,
+          region: geo.region,
+          deviceType: dev.deviceType,
+          os: dev.os,
+          browser: dev.browser,
+          screen: dev.screen,
+          visitsCount: visitCount,
+          lastPage: currentPage,
+          lastVisit: now
+        });
+
+        if (!sessionVisited) {
+          const logRef = db.ref("analytics/visitorLogs").push();
+          logRef.set({
+            id: logRef.key,
+            vid: vid,
+            ip: geo.ip,
+            country: geo.country,
+            countryCode: geo.countryCode,
+            flag: geo.flag,
+            city: geo.city,
+            region: geo.region,
+            deviceType: dev.deviceType,
+            os: dev.os,
+            browser: dev.browser,
+            screen: dev.screen,
+            visitsCount: visitCount,
+            page: currentPage,
+            timestamp: now
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("VisitorAnalytics error:", err);
     }
   }
+};
+
+function trackVisitor() {
+  VisitorAnalytics.recordVisit();
 }
 
 /**

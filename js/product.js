@@ -28,6 +28,8 @@ const ProductPage = {
     await this.loadProduct();
     this.setupListeners();
     await this.loadRecommendedProducts();
+    this.updateMobileCartGlow();
+    this.trackVisitor();
   },
 
   initShippingListener() {
@@ -717,6 +719,182 @@ const ProductPage = {
   resetRecommendedTimer() {
     if (this.autoScrollTimer) clearInterval(this.autoScrollTimer);
     this.initRecommendedAutoScroll();
+  },
+
+  updateMobileCartGlow() {
+    try {
+      const saved = localStorage.getItem("helha_cart");
+      const cart = saved ? JSON.parse(saved) : [];
+      const totalCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      const mobCartNavItems = document.querySelectorAll('.mobile-bottom-nav a[href*="#cart"], .mobile-bottom-nav a[href*="cart"]');
+      let cartBubble = document.getElementById("mobile-cart-toast-bubble");
+
+      if (totalCount > 0) {
+        mobCartNavItems.forEach(item => item.classList.add("cart-glowing"));
+        if (!cartBubble) {
+          cartBubble = document.createElement("a");
+          cartBubble.id = "mobile-cart-toast-bubble";
+          cartBubble.className = "mobile-cart-toast-bubble";
+          cartBubble.href = "index.html#cart";
+          document.body.appendChild(cartBubble);
+        }
+        cartBubble.innerHTML = `<span>🛒 يوجد منتجات في السلة بانتظارك</span> <strong>(${totalCount})</strong>`;
+        cartBubble.style.display = "flex";
+      } else {
+        mobCartNavItems.forEach(item => item.classList.remove("cart-glowing"));
+        if (cartBubble) cartBubble.style.display = "none";
+      }
+    } catch (e) {
+      console.warn("Cart glow error:", e);
+    }
+  },
+
+  addToCart() {
+    if (!this.currentProduct) return;
+    const p = this.currentProduct;
+    try {
+      const saved = localStorage.getItem("helha_cart");
+      let cart = saved ? JSON.parse(saved) : [];
+      const existing = cart.find(item => String(item.id) === String(p.id));
+      if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+      } else {
+        cart.push({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          image: p.image || "assets/logo.jpg",
+          quantity: 1
+        });
+      }
+      localStorage.setItem("helha_cart", JSON.stringify(cart));
+      this.updateMobileCartGlow();
+      
+      let toast = document.getElementById("product-toast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "product-toast";
+        toast.style.cssText = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#16a34a; color:#fff; padding:0.75rem 1.5rem; border-radius:30px; font-weight:800; font-size:0.95rem; z-index:99999999; box-shadow:0 6px 20px rgba(22,163,74,0.35); transition:all 0.3s ease; text-align:center; max-width:90%;";
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `تمت إضافة "${p.name}" إلى السلة 🛍️ <a href="index.html#cart" style="color:#fff; text-decoration:underline; margin-right:8px; font-weight:900;">عرض السلة ↗</a>`;
+      toast.style.opacity = "1";
+      toast.style.visibility = "visible";
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.visibility = "hidden";
+      }, 3500);
+    } catch (e) {
+      console.warn("Cart error:", e);
+    }
+  },
+
+  async trackVisitor() {
+    try {
+      let vid = localStorage.getItem("helha_vid");
+      if (!vid) {
+        vid = "v_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 7);
+        localStorage.setItem("helha_vid", vid);
+      }
+
+      const sessionVisited = sessionStorage.getItem("helha_session_visited");
+      let visitCount = parseInt(localStorage.getItem("helha_visit_count") || "0", 10);
+      
+      if (!sessionVisited) {
+        visitCount += 1;
+        localStorage.setItem("helha_visit_count", String(visitCount));
+        sessionStorage.setItem("helha_session_visited", "true");
+
+        if (typeof db !== "undefined" && db) {
+          db.ref("analytics/totalVisits").transaction((c) => (c || 0) + 1);
+          db.ref("analytics/todayVisits").transaction((c) => (c || 0) + 1);
+        }
+      }
+
+      const ua = navigator.userAgent || "";
+      let deviceType = "كمبيوتر 💻";
+      if (/ipad|tablet|(android(?!.*mobile))/i.test(ua)) deviceType = "جهاز لوحي 📟";
+      else if (/mobile|iphone|ipod|android.*mobile/i.test(ua) || window.innerWidth <= 768) deviceType = "هاتف محمول 📱";
+
+      let os = "غير معروف";
+      if (/android/i.test(ua)) os = "Android";
+      else if (/iphone|ipad|ipod/i.test(ua)) os = "iOS";
+      else if (/windows/i.test(ua)) os = "Windows";
+      else if (/macintosh|mac os x/i.test(ua)) os = "macOS";
+      else if (/linux/i.test(ua)) os = "Linux";
+
+      let browser = "متصفح الويب";
+      if (/edg/i.test(ua)) browser = "Edge";
+      else if (/chrome|crios/i.test(ua)) browser = "Chrome";
+      else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = "Safari";
+      else if (/firefox|fxios/i.test(ua)) browser = "Firefox";
+
+      let geo = { ip: "156.197.x.x", country: "مصر", countryCode: "EG", city: "القاهرة", region: "محافظة القاهرة", flag: "🇪🇬" };
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch("https://ipwho.is/", { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success !== false) {
+            geo = {
+              ip: data.ip || "غير معروف",
+              country: data.country || "مصر",
+              countryCode: data.country_code || "EG",
+              city: data.city || "القاهرة",
+              region: data.region || "محافظة القاهرة",
+              flag: data.flag ? data.flag.emoji : "🇪🇬"
+            };
+          }
+        }
+      } catch (e) {}
+
+      const prodName = this.currentProduct ? this.currentProduct.name : "صفحة المنتج";
+      const now = Date.now();
+
+      if (typeof db !== "undefined" && db) {
+        db.ref(`analytics/visitors/${vid}`).update({
+          vid: vid,
+          ip: geo.ip,
+          country: geo.country,
+          countryCode: geo.countryCode,
+          flag: geo.flag,
+          city: geo.city,
+          region: geo.region,
+          deviceType: deviceType,
+          os: os,
+          browser: browser,
+          screen: `${window.screen.width}x${window.screen.height}`,
+          visitsCount: visitCount,
+          lastPage: `منتج: ${prodName}`,
+          lastVisit: now
+        });
+
+        if (!sessionVisited) {
+          const logRef = db.ref("analytics/visitorLogs").push();
+          logRef.set({
+            id: logRef.key,
+            vid: vid,
+            ip: geo.ip,
+            country: geo.country,
+            countryCode: geo.countryCode,
+            flag: geo.flag,
+            city: geo.city,
+            region: geo.region,
+            deviceType: deviceType,
+            os: os,
+            browser: browser,
+            screen: `${window.screen.width}x${window.screen.height}`,
+            visitsCount: visitCount,
+            page: `منتج: ${prodName}`,
+            timestamp: now
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("ProductPage visitor tracker error:", e);
+    }
   }
 };
 

@@ -92,6 +92,12 @@
           </button>
         </li>
         <li class="menu-item">
+          <button data-tab="visitors">
+            <span class="menu-icon">👥</span>
+            <span>سجل الزيارات والتحليلات</span>
+          </button>
+        </li>
+        <li class="menu-item">
           <button data-tab="banners">
             <span class="menu-icon">📢</span>
             <span>إدارة البانرات والعروض</span>
@@ -173,7 +179,7 @@
               </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="document.querySelector('[data-tab=\'visitors\']').click()" title="انقر لعرض تفاصيل الزيارات والعملاء ↗">
               <div class="stat-icon-wrap icon-visits">👥</div>
               <div class="stat-details">
                 <span>إجمالي الزيارات</span>
@@ -437,6 +443,96 @@
                 </thead>
                 <tbody id="admin-coupons-tbody">
                   <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: VISITORS & TRAFFIC ANALYTICS -->
+        <section id="tab-visitors" class="tab-pane">
+          <!-- Summary Cards -->
+          <div class="stats-grid" style="margin-bottom:1.5rem;">
+            <div class="stat-card">
+              <div class="stat-icon-wrap icon-visits">👥</div>
+              <div class="stat-details">
+                <span>إجمالي الزيارات المسجلة</span>
+                <h3 id="vis-stat-total">0</h3>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap" style="background:#e0f2fe; color:#0284c7;">👤</div>
+              <div class="stat-details">
+                <span>الزوار الفريدين (Unique)</span>
+                <h3 id="vis-stat-unique">0</h3>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap" style="background:#fef3c7; color:#d97706;">⚡</div>
+              <div class="stat-details">
+                <span>زيارات اليوم النشطة</span>
+                <h3 id="vis-stat-today">0</h3>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap" style="background:#fce7f3; color:#db2777;">📱</div>
+              <div class="stat-details">
+                <span>نسبة مستخدمي الهواتف</span>
+                <h3 id="vis-stat-mobile-pct">0%</h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Visitors Panel -->
+          <div class="panel-card">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+              <div>
+                <h3 style="margin:0;">سجل زيارات العملاء وتحليلات الترافيك 🌐</h3>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.3rem;">
+                  عرض تفاصيل كل زيارة: عنوان الـ IP، الدولة، المحافظة والمدينة، نوع الجهاز والمتصفح، وعدد زيارات كل عميل.
+                </p>
+              </div>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <button class="btn-admin-action" onclick="AdminAnalytics.loadVisitors()" style="background:#f1f5f9; color:var(--text-main);">
+                  🔄 تحديث السجل
+                </button>
+              </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div style="display:flex; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap;">
+              <input type="text" id="vis-search-input" class="admin-input" placeholder="🔍 بحث بالـ IP، المحافظة، الدولة، أو الجهاز..." style="flex:1; min-width:220px;" oninput="AdminAnalytics.filterVisitors()">
+              <select id="vis-device-filter" class="admin-select" style="width:auto; min-width:140px;" onchange="AdminAnalytics.filterVisitors()">
+                <option value="all">كل الأجهزة</option>
+                <option value="mobile">هواتف محمولة 📱</option>
+                <option value="desktop">كمبيوتر 💻</option>
+                <option value="tablet">أجهزة لوحية 📟</option>
+              </select>
+            </div>
+
+            <!-- Visitors Table -->
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>الدولة</th>
+                    <th>المكان / المحافظة</th>
+                    <th>عنوان الـ IP</th>
+                    <th>الجهاز والمتصفح</th>
+                    <th>كام زيارة</th>
+                    <th>آخر صفحة مزارة</th>
+                    <th>تاريخ ووقت الزيارة</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-visitors-tbody">
+                  <tr>
+                    <td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">
+                      جاري تحميل سجل الزيارات...
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
