@@ -209,10 +209,10 @@ function createProductCardHTML(prod) {
   } else {
     actionsHTML = `
       <div class="product-actions" style="display:flex; gap:0.5rem; align-items:center; margin-top: auto; padding-top: 0.65rem;">
-        <a href="product.html?id=${prod.id}" class="btn-buy-now" style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#175349; color:#ffffff !important; font-weight:800; font-size:0.95rem; text-decoration:none; padding:0.8rem 0.75rem; border-radius:8px; box-shadow:0 4px 12px rgba(23,83,73,0.25);">
+        <a href="product.html?id=${prod.id}" class="btn-buy-now" aria-label="شراء ${prod.name} أونلاين بعد المعاينة والدفع عند الاستلام" style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.5rem; background:#175349; color:#ffffff !important; font-weight:800; font-size:0.95rem; text-decoration:none; padding:0.8rem 0.75rem; border-radius:8px; box-shadow:0 4px 12px rgba(23,83,73,0.25);">
           <span>اضغط هنا للشراء 🚚</span>
         </a>
-        <button type="button" class="btn-card-quick-cart" onclick="addToCart('${prod.id}'); event.stopPropagation();" title="إضافة المنتج للسلة 🛒" aria-label="إضافة المنتج للسلة">
+        <button type="button" class="btn-card-quick-cart" onclick="addToCart('${prod.id}'); event.stopPropagation();" title="إضافة المنتج للسلة 🛒" aria-label="إضافة ${prod.name} للسلة">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px;">
             <circle cx="9" cy="21" r="1.5"></circle>
             <circle cx="20" cy="21" r="1.5"></circle>
@@ -233,7 +233,7 @@ function createProductCardHTML(prod) {
         ${prod.badge ? `<span class="product-badge">${prod.badge}</span>` : ""}
         ${discountPercent && !prod.badge ? `<span class="product-badge">خصم ${discountPercent}%</span>` : ""}
         ${prod.isDemo ? `<span class="badge-demo">تجريبي</span>` : ""}
-        <img src="${primaryImg}" alt="${prod.name}" class="card-slider-img" loading="lazy" onerror="this.src='assets/logo.jpg'">
+        <img src="${primaryImg}" alt="شراء ${prod.name} أونلاين في مصر - متجر حِلها" class="card-slider-img" width="300" height="255" loading="lazy" decoding="async" onerror="this.src='assets/logo.jpg'">
         ${hasMultipleImages ? `
           <div class="card-slider-dots">
             ${images.map((_, idx) => `<span class="card-slider-dot ${idx === 0 ? 'active' : ''}"></span>`).join("")}
@@ -243,7 +243,7 @@ function createProductCardHTML(prod) {
 
       <div class="product-details">
         <div class="product-category-tag">${prod.categoryName || getCategoryArabicName(prod.category)}</div>
-        <h4 class="product-title" onclick="window.location.href='product.html?id=${prod.id}'" title="${prod.name}">${prod.name}</h4>
+        <h3 class="product-title"><a href="product.html?id=${prod.id}" class="product-title-link" title="${prod.name}">${prod.name}</a></h3>
         <p class="product-subtitle">${prod.subtitle || ""}</p>
         
         <div class="product-meta product-meta-clickable" onclick="window.location.href='product.html?id=${prod.id}#product-reviews-section'; event.stopPropagation();" title="اضغط لعرض تقييمات وآراء العملاء (${reviewStats.count} تقييم)">

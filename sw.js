@@ -1,9 +1,11 @@
 /**
- * Service Worker for Helha Store (حِلها) PWA
- * Caches essential shell assets and enables WebAPK installation on Android
+ * Service Worker for Helha Store (حِلها) PWA - v3
+ * Fast, intelligent caching strategy:
+ * - Cache-First with background revalidation for static assets (CSS, JS, Fonts, Images) => Zero Latency page switches.
+ * - Network-First with cache fallback for HTML pages => Always fresh content with reliable offline fallback.
  */
 
-const CACHE_NAME = "helha-pwa-v2";
+const CACHE_NAME = "helha-pwa-v3";
 
 const STATIC_ASSETS = [
   "./",
@@ -22,27 +24,32 @@ const STATIC_ASSETS = [
   "./css/admin.css",
   "./js/app.js",
   "./js/product.js",
+  "./js/reviews.js",
   "./js/firebase-config.js",
   "./js/telegram.js",
   "./manifest.json",
   "./assets/logo.jpg",
   "./assets/banner.jpg",
+  "./assets/banners/banner-main.jpg",
+  "./assets/banners/banner-shipping.jpg",
+  "./assets/banners/banner-cod.jpg",
+  "./assets/banners/banner-support.jpg",
   "./assets/icon-192.png",
   "./assets/icon-512.png"
 ];
 
-// Install: Cache core assets
+// Install: Pre-cache core shell assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn("Some assets failed to cache:", err);
+        console.warn("Some assets failed to pre-cache:", err);
       });
     }).then(() => self.skipWaiting())
   );
 });
 
-// Activate: Clean old caches
+// Activate: Flush previous cache versions
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -53,14 +60,13 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Fetch: Network First with cache fallback
+// Fetch: Smart Strategy based on request type
 self.addEventListener("fetch", (event) => {
-  // Only handle GET requests
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
 
-  // Skip Firebase Realtime Database and Cloudflare Worker / external APIs
+  // Exclude Firebase Realtime DB, Cloudflare Workers, and external APIs
   if (
     url.hostname.includes("firebaseio.com") ||
     url.hostname.includes("workers.dev") ||
@@ -70,28 +76,52 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const isHtml = event.request.headers.get("accept")?.includes("text/html");
+  const isStatic = (
+    url.pathname.endsWith(".css") ||
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".jpg") ||
+    url.pathname.endsWith(".png") ||
+    url.pathname.endsWith(".svg") ||
+    url.pathname.endsWith(".webp") ||
+    url.pathname.endsWith(".ico") ||
+    url.pathname.includes("/assets/") ||
+    url.hostname.includes("fonts.gstatic.com") ||
+    url.hostname.includes("fonts.googleapis.com")
+  );
+
+  // 1. Static Assets: Cache-First with Stale-While-Revalidate (Instant loading)
+  if (isStatic) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkResponse;
+        }).catch(() => null);
+
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // 2. HTML & Navigation: Network-First with Cache fallback (Freshness guaranteed)
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        // If valid response, update cache for static assets
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return networkResponse;
       })
       .catch(() => {
-        // Offline fallback to cache
         return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // If HTML request failed, return index.html
-          if (event.request.headers.get("accept")?.includes("text/html")) {
-            return caches.match("./index.html");
-          }
+          if (cachedResponse) return cachedResponse;
+          if (isHtml) return caches.match("./index.html");
         });
       })
   );

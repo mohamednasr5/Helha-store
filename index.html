@@ -42,10 +42,21 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 
-  <!-- Google Fonts: Cairo -->
+  <!-- Google Fonts: Cairo (Optimized weights for fast FCP) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- LCP Hero Image Preload for Core Web Vitals -->
+  <link rel="preload" as="image" href="assets/banners/banner-main.jpg" fetchpriority="high">
+
+  <!-- Canonical Clean URL Normalization -->
+  <script>
+    if (window.location.pathname.endsWith("/index.html")) {
+      var cleanPath = window.location.pathname.replace(/\/index\.html$/, "/") + window.location.search + window.location.hash;
+      window.history.replaceState(null, "", cleanPath);
+    }
+  </script>
 
   <!-- PWA Manifest & Mobile Config -->
   <link rel="manifest" href="manifest.json">
@@ -238,11 +249,11 @@
         <div class="hero-carousel-card" id="hero-carousel-container" aria-label="بانرات وعروض متجر حلها الرئيسية">
           <!-- Slider Track -->
           <div class="hero-slider-track" id="hero-slider-track">
-            <!-- Slide 1: Main Solutions Banner -->
+            <!-- Slide 1: Main Solutions Banner (High Priority LCP) -->
             <div class="hero-slide active" data-index="0">
               <a href="#products-section" class="hero-slide-link" title="وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك">
                 <div class="hero-slide-img-wrap">
-                  <img src="assets/banners/banner-main.jpg" alt="غلاف متجر حِلها - وفّرنا لك كل الحلول والأدوات اللي تسهل حياتك" class="hero-slide-img" loading="eager">
+                  <img src="assets/banners/banner-main.jpg" alt="بانر متجر حِلها - وفّرنا لك كل الحلول والأدوات المنزلية الذكية التي تسهل حياتك في مصر مع شحن سريع ودفع عند الاستلام" class="hero-slide-img" width="1024" height="571" fetchpriority="high" loading="eager">
                   <div class="hero-slide-sheen"></div>
                 </div>
               </a>
@@ -251,7 +262,7 @@
             <div class="hero-slide" data-index="1">
               <a href="shipping.html" class="hero-slide-link" title="شحن وتوصيل سريع بجميع محافظات مصر">
                 <div class="hero-slide-img-wrap">
-                  <img src="assets/banners/banner-shipping.jpg" alt="شحن وتوصيل سريع لباب بيتك بجميع المحافظات في مصر" class="hero-slide-img" loading="lazy">
+                  <img src="assets/banners/banner-shipping.jpg" alt="شحن وتوصيل سريع لباب بيتك بجميع المحافظات في مصر" class="hero-slide-img" width="1024" height="571" loading="lazy" decoding="async">
                   <div class="hero-slide-sheen"></div>
                 </div>
               </a>
@@ -260,7 +271,7 @@
             <div class="hero-slide" data-index="2">
               <a href="#products-section" class="hero-slide-link" title="الدفع عند الاستلام بعد المعاينة والفحص الكامل">
                 <div class="hero-slide-img-wrap">
-                  <img src="assets/banners/banner-cod.jpg" alt="الدفع عند الاستلام - عاين منتجك وافحصه بالكامل قبل الدفع" class="hero-slide-img" loading="lazy">
+                  <img src="assets/banners/banner-cod.jpg" alt="الدفع عند الاستلام - عاين منتجك وافحصه بالكامل قبل الدفع" class="hero-slide-img" width="1024" height="571" loading="lazy" decoding="async">
                   <div class="hero-slide-sheen"></div>
                 </div>
               </a>
@@ -269,7 +280,7 @@
             <div class="hero-slide" data-index="3">
               <a href="mailto:Hellha.eg@gmail.com" class="hero-slide-link" title="دعم واستجابة سريعة عبر البريد">
                 <div class="hero-slide-img-wrap">
-                  <img src="assets/banners/banner-support.jpg" alt="دعم واستجابة سريعة - متابعة رسمية عبر البريد Hellha.eg@gmail.com" class="hero-slide-img" loading="lazy">
+                  <img src="assets/banners/banner-support.jpg" alt="دعم واستجابة سريعة - متابعة رسمية عبر البريد Hellha.eg@gmail.com" class="hero-slide-img" width="1024" height="571" loading="lazy" decoding="async">
                   <div class="hero-slide-sheen"></div>
                 </div>
               </a>
@@ -295,35 +306,35 @@
       </div>
     </section>
 
-    <!-- Trust Badges Strip -->
+    <!-- Trust Badges Strip (Optimized Semantics: Divs instead of H3/H4) -->
     <section class="features-strip">
       <div class="container">
         <div class="features-grid">
           <div class="feature-box feature-box-truck">
             <div class="feature-icon icon-anim-truck">🚚</div>
             <div class="feature-info">
-              <h4>شحن وتوصيل سريع</h4>
+              <div class="feature-title">شحن وتوصيل سريع</div>
               <p>توصيل لباب بيتك بجميع المحافظات مع التوصيل في مصر</p>
             </div>
           </div>
           <div class="feature-box feature-box-cash">
             <div class="feature-icon icon-anim-cash">💵</div>
             <div class="feature-info">
-              <h4>الدفع عند الاستلام</h4>
+              <div class="feature-title">الدفع عند الاستلام</div>
               <p>عاين منتجك وافحصه بالكامل قبل الدفع</p>
             </div>
           </div>
           <div class="feature-box feature-box-shield">
             <div class="feature-icon icon-anim-shield">🛡️</div>
             <div class="feature-info">
-              <h4>منتجات مبتكرة للمنزل</h4>
+              <div class="feature-title">منتجات مبتكرة للمنزل</div>
               <p>حلول ذكية وجودة أصلية لراحة تدوم</p>
             </div>
           </div>
           <div class="feature-box feature-box-support">
             <div class="feature-icon icon-anim-support">✉️</div>
             <div class="feature-info">
-              <h4>دعم واستجابة سريعة</h4>
+              <div class="feature-title">دعم واستجابة سريعة</div>
               <p>متابعة رسمية عبر البريد: Hellha.eg@gmail.com</p>
             </div>
           </div>
@@ -336,7 +347,7 @@
       <div class="container">
         <div class="section-header">
           <div class="section-title-wrap">
-            <h3>أفضل منتجات منزلية عملية وحلول ذكية 🌟</h3>
+            <h1 class="section-main-title">أفضل منتجات منزلية عملية وحلول ذكية في مصر 🌟</h1>
             <p>تسوق منتجات منزلية أونلاين بأفضل جودة وأنسب سعر لتسهيل يومك وحل مشاكل المنزل</p>
           </div>
 

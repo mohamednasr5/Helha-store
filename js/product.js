@@ -95,6 +95,18 @@ const ProductPage = {
       metaDesc.content = `تعرف على سعر ومواصفات ${p.name} في مصر. تسوق الآن شراء أونلاين بأفضل سعر مع التوصيل لكافة المحافظات والدفع عند الاستلام بعد المعاينة من متجر حِلها.`;
     }
 
+    // Dynamic Canonical URL and OpenGraph Meta Tags
+    const canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) {
+      canonicalLink.href = `https://helha-eg.com/product.html?id=${p.id}`;
+    }
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.content = `https://helha-eg.com/product.html?id=${p.id}`;
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.content = `شراء ${p.name} أونلاين في مصر | متجر حِلها`;
+    const ogImage = document.querySelector('meta[property="og:image"]');
+    if (ogImage && p.image) ogImage.content = p.image;
+
     // Product Image Gallery (Up to 10 Images + Auto Slider)
     this.initGallery(p);
 
@@ -111,6 +123,9 @@ const ProductPage = {
 
     const starsEl = document.getElementById("prod-header-stars");
     if (starsEl) starsEl.textContent = reviewStats.rating >= 4.9 ? "★★★★★" : "★★★★½";
+
+    // Update Dynamic Schema.org (JSON-LD) with Real Reviews & Exact Ratings
+    this.updateProductSchema(p, reviewStats);
 
     // Price & Discount
     const priceEl = document.getElementById("prod-main-price");
@@ -248,6 +263,85 @@ const ProductPage = {
   scrollToReviews() {
     if (typeof ReviewsModule !== "undefined") {
       ReviewsModule.scrollToReviews();
+    }
+  },
+
+  updateProductSchema(p, reviewStats) {
+    try {
+      const isOutOfStock = p.availability === "out_of_stock";
+      const isPreorder = p.availability === "preorder";
+      const availabilityUrl = isOutOfStock
+        ? "https://schema.org/OutOfStock"
+        : (isPreorder ? "https://schema.org/PreOrder" : "https://schema.org/InStock");
+
+      const images = (Array.isArray(p.images) && p.images.length > 0)
+        ? p.images.filter(Boolean)
+        : (p.image ? [p.image] : ["https://helha-eg.com/assets/logo.jpg"]);
+
+      const topReviews = typeof ReviewsModule !== "undefined"
+        ? ReviewsModule.generateProductReviews(p, 5)
+        : [];
+
+      const schemaData = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": p.name,
+        "image": images,
+        "description": p.description || p.subtitle || `تسوق ${p.name} أونلاين في مصر بأفضل سعر مع الدفع عند الاستلام بعد المعاينة من متجر حِلها.`,
+        "sku": String(p.id || "HLH-PROD"),
+        "mpn": String(p.id || "HLH-PROD"),
+        "brand": {
+          "@type": "Brand",
+          "name": "حِلها - Helha"
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": `https://helha-eg.com/product.html?id=${p.id}`,
+          "priceCurrency": "EGP",
+          "price": String(p.price || 0),
+          "priceValidUntil": "2027-12-31",
+          "itemCondition": "https://schema.org/NewCondition",
+          "availability": availabilityUrl,
+          "seller": {
+            "@type": "Organization",
+            "name": "متجر حِلها",
+            "url": "https://helha-eg.com"
+          }
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": reviewStats.rating.toFixed(1),
+          "reviewCount": String(reviewStats.count),
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "review": topReviews.map(r => ({
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": r.name
+          },
+          "datePublished": "2026-10-10",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": String(r.rating),
+            "bestRating": "5",
+            "worstRating": "1"
+          },
+          "reviewBody": r.comment
+        }))
+      };
+
+      let scriptTag = document.getElementById("product-json-ld");
+      if (!scriptTag) {
+        scriptTag = document.createElement("script");
+        scriptTag.id = "product-json-ld";
+        scriptTag.type = "application/ld+json";
+        document.head.appendChild(scriptTag);
+      }
+      scriptTag.textContent = JSON.stringify(schemaData, null, 2);
+    } catch (e) {
+      console.warn("Error updating Product Schema.org:", e);
     }
   },
 
