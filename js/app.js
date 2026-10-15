@@ -324,6 +324,16 @@ window.submitPreorderForm = async function(e) {
     if (typeof db !== "undefined" && db) {
       await db.ref("preorders").push(preorderData);
     }
+
+    // Dispatch instant Telegram notification to admins
+    if (typeof TelegramService !== "undefined") {
+      try {
+        await TelegramService.notifyPreorder(preorderData);
+      } catch (tgErr) {
+        console.warn("Telegram preorder notification warning:", tgErr);
+      }
+    }
+
     closePreorderModal();
     document.getElementById("preorder-form")?.reset();
     alert(`شكراً لك يا ${name}! 🎉\nتم تسجيل حجزك المسبق بنجاح لمنتج (${prodName}).\nسنقوم بإشعارك عبر واتساب فور توفر المنتج بالمخزن!`);

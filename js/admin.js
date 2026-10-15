@@ -179,6 +179,7 @@ function initDashboard() {
   db.ref("analytics").on("value", (snap) => {
     AdminState.analytics = snap.val() || {};
     updateDashboardStats();
+    updateVisitorsBadgeCount();
     if (typeof AdminAnalytics !== "undefined") {
       AdminAnalytics.onAnalyticsUpdated(AdminState.analytics);
     }
@@ -229,6 +230,9 @@ function updateDashboardStats() {
   if (totalRevenueEl) totalRevenueEl.textContent = `${activeOrdersRevenue.toLocaleString("ar-EG")} ج.م`;
   if (totalVisitsEl) totalVisitsEl.textContent = visits.toLocaleString("ar-EG");
   if (totalProductsEl) totalProductsEl.textContent = prodsCount;
+
+  // Update visitors smart badge in sidebar
+  updateVisitorsBadgeCount();
 
   // Render recent orders on overview tab
   renderOverviewRecentOrders();
@@ -1216,12 +1220,14 @@ async function loadAdminSettings() {
         const ordCheck = document.getElementById("tg-notify-orders");
         const logCheck = document.getElementById("tg-notify-logins");
         const msgCheck = document.getElementById("tg-notify-messages");
+        const preCheck = document.getElementById("tg-notify-preorders");
 
         if (tokenInput) tokenInput.value = settings.telegram.botToken || "";
         if (chatInput) chatInput.value = settings.telegram.chatId || "";
         if (ordCheck) ordCheck.checked = settings.telegram.notifyOrders !== false;
         if (logCheck) logCheck.checked = settings.telegram.notifyLogins !== false;
         if (msgCheck) msgCheck.checked = settings.telegram.notifyMessages !== false;
+        if (preCheck) preCheck.checked = settings.telegram.notifyPreorders !== false;
       }
     }
   } catch (err) {
@@ -1273,13 +1279,15 @@ function setupSettingsHandlers() {
       const notifyOrders = document.getElementById("tg-notify-orders").checked;
       const notifyLogins = document.getElementById("tg-notify-logins").checked;
       const notifyMessages = document.getElementById("tg-notify-messages") ? document.getElementById("tg-notify-messages").checked : true;
+      const notifyPreorders = document.getElementById("tg-notify-preorders") ? document.getElementById("tg-notify-preorders").checked : true;
 
       await TelegramService.saveSettings({
         botToken,
         chatId,
         notifyOrders,
         notifyLogins,
-        notifyMessages
+        notifyMessages,
+        notifyPreorders
       });
 
       showAdminToast("تم حفظ إعدادات تليجرام في Firebase بنجاح ✅");
@@ -1755,12 +1763,23 @@ function setupAdminNavigation() {
 function updatePreordersBadgeCount() {
   const badge = document.getElementById("preorders-badge-count");
   if (!badge) return;
-  const pendingCount = (AdminState.preorders || []).filter(p => p.status !== "notified").length;
+  const preorders = AdminState.preorders || [];
+  const pendingCount = preorders.filter(p => p.status !== "notified").length;
+  const totalCount = preorders.length;
+
+  badge.style.display = "inline-flex";
   if (pendingCount > 0) {
-    badge.textContent = pendingCount;
-    badge.style.display = "inline-block";
+    badge.textContent = pendingCount > 99 ? "99+" : pendingCount;
+    badge.className = "menu-badge badge-preorders badge-alert";
+    badge.title = `${pendingCount} حجز مسبق معلق بانتظار التوفر والإشعار`;
+  } else if (totalCount > 0) {
+    badge.textContent = totalCount > 999 ? (totalCount / 1000).toFixed(1) + "k" : totalCount;
+    badge.className = "menu-badge badge-preorders badge-normal";
+    badge.title = `إجمالي الحجوزات: ${totalCount}`;
   } else {
-    badge.style.display = "none";
+    badge.textContent = "0";
+    badge.className = "menu-badge badge-preorders badge-empty";
+    badge.title = "لا توجد طلبات مسبقة حالياً";
   }
 }
 
@@ -2030,12 +2049,41 @@ window.deleteAdminMessage = deleteAdminMessage;
 function updateOrdersBadgeCount() {
   const badge = document.getElementById("orders-badge-count");
   if (!badge) return;
-  const newOrders = AdminState.orders.filter(o => o.status === "new" || !o.status).length;
+  const orders = AdminState.orders || [];
+  const newOrders = orders.filter(o => o.status === "new" || !o.status).length;
+  const totalOrders = orders.length;
+
+  badge.style.display = "inline-flex";
   if (newOrders > 0) {
-    badge.textContent = newOrders;
-    badge.style.display = "inline-block";
+    badge.textContent = newOrders > 99 ? "99+" : newOrders;
+    badge.className = "menu-badge badge-orders badge-alert";
+    badge.title = `${newOrders} طلبات جديدة بحاجة للمراجعة`;
+  } else if (totalOrders > 0) {
+    badge.textContent = totalOrders > 999 ? (totalOrders / 1000).toFixed(1) + "k" : totalOrders;
+    badge.className = "menu-badge badge-orders badge-normal";
+    badge.title = `إجمالي الطلبات الواردة: ${totalOrders}`;
   } else {
-    badge.style.display = "none";
+    badge.textContent = "0";
+    badge.className = "menu-badge badge-orders badge-empty";
+    badge.title = "لا توجد طلبات واردة حالياً";
+  }
+}
+
+function updateVisitorsBadgeCount() {
+  const badge = document.getElementById("visitors-badge-count");
+  if (!badge) return;
+  const count = (AdminState.analytics && AdminState.analytics.totalVisits) || (typeof AdminAnalytics !== "undefined" && AdminAnalytics.logs ? AdminAnalytics.logs.length : 0) || 0;
+
+  badge.style.display = "inline-flex";
+  if (count > 0) {
+    let display = count > 9999 ? (count / 1000).toFixed(1).replace(/\.0$/, '') + "k" : count.toString();
+    badge.textContent = display;
+    badge.className = "menu-badge badge-visitors badge-active";
+    badge.title = `إجمالي عدد الزيارات: ${count.toLocaleString("ar-EG")}`;
+  } else {
+    badge.textContent = "0";
+    badge.className = "menu-badge badge-visitors badge-empty";
+    badge.title = "لا توجد زيارات مسجلة بعد";
   }
 }
 
@@ -2494,6 +2542,8 @@ function closeCouponAnalyticsModal() {
 
 // Window exports for HTML onclick handlers
 window.updateOrdersBadgeCount = updateOrdersBadgeCount;
+window.updatePreordersBadgeCount = updatePreordersBadgeCount;
+window.updateVisitorsBadgeCount = updateVisitorsBadgeCount;
 window.playOrderNotificationSound = playOrderNotificationSound;
 window.selectShippingMode = selectShippingMode;
 window.applyBulkGovRate = applyBulkGovRate;
@@ -2575,6 +2625,8 @@ const AdminAnalytics = {
     if (uniqueEl) uniqueEl.textContent = unique.toLocaleString("ar-EG");
     if (todayEl) todayEl.textContent = today.toLocaleString("ar-EG");
     if (mobilePctEl) mobilePctEl.textContent = `${mobilePct}%`;
+
+    updateVisitorsBadgeCount();
   },
 
   filterVisitors() {

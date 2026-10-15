@@ -63,69 +63,70 @@
         <li class="menu-item active">
           <button data-tab="overview">
             <span class="menu-icon">📊</span>
-            <span>نظرة عامة وإحصائيات</span>
+            <span class="menu-label">نظرة عامة وإحصائيات</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="products">
             <span class="menu-icon">📦</span>
-            <span>إدارة المنتجات</span>
+            <span class="menu-label">إدارة المنتجات</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="orders">
             <span class="menu-icon">🛒</span>
-            <span>إدارة الطلبات</span>
-            <span id="orders-badge-count" class="menu-badge" style="display:none;">0</span>
+            <span class="menu-label">إدارة الطلبات</span>
+            <span id="orders-badge-count" class="menu-badge badge-orders badge-empty" title="عدد الطلبات الواردة">0</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="preorders">
             <span class="menu-icon">⏳</span>
-            <span>الطلبات المسبقة</span>
-            <span id="preorders-badge-count" class="menu-badge" style="display:none; background:#f59e0b; color:#ffffff;">0</span>
+            <span class="menu-label">الطلبات المسبقة</span>
+            <span id="preorders-badge-count" class="menu-badge badge-preorders badge-empty" title="عدد الحجوزات المعلقة">0</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="shipping">
             <span class="menu-icon">🚚</span>
-            <span>مصاريف الشحن</span>
+            <span class="menu-label">مصاريف الشحن</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="coupons">
             <span class="menu-icon">🎟️</span>
-            <span>كوبونات الخصم</span>
+            <span class="menu-label">كوبونات الخصم</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="visitors">
             <span class="menu-icon">👥</span>
-            <span>سجل الزيارات والتحليلات</span>
+            <span class="menu-label">سجل الزيارات والتحليلات</span>
+            <span id="visitors-badge-count" class="menu-badge badge-visitors badge-active" title="إجمالي عدد الزيارات">0</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="banners">
             <span class="menu-icon">📢</span>
-            <span>إدارة البانرات والعروض</span>
+            <span class="menu-label">إدارة البانرات والعروض</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="telegram">
             <span class="menu-icon">🤖</span>
-            <span>إعدادات التليجرام</span>
+            <span class="menu-label">إعدادات التليجرام</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="messages">
             <span class="menu-icon">✉️</span>
-            <span>رسائل واستفسارات العملاء</span>
+            <span class="menu-label">رسائل واستفسارات العملاء</span>
           </button>
         </li>
         <li class="menu-item">
           <button data-tab="settings">
             <span class="menu-icon">⚙️</span>
-            <span>الإعدادات والأمان</span>
+            <span class="menu-label">الإعدادات والأمان</span>
           </button>
         </li>
       </ul>
@@ -762,6 +763,11 @@
                     <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer;">
                       <input type="checkbox" id="tg-notify-orders" checked style="width:18px; height:18px;">
                       <span><strong>إشعار طلب جديد:</strong> تفاصيل العميل والمنتجات والعنوان فورياً.</span>
+                    </label>
+
+                    <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer;">
+                      <input type="checkbox" id="tg-notify-preorders" checked style="width:18px; height:18px;">
+                      <span><strong>إشعار حجز طلب مسبق:</strong> تفاصيل العميل والمنتج المطلوب ورابط الواتساب فورياً ⏳.</span>
                     </label>
 
                     <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer;">

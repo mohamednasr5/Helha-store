@@ -797,6 +797,16 @@ const ProductPage = {
         if (typeof db !== "undefined" && db) {
           await db.ref("preorders").push(preorderData);
         }
+
+        // Dispatch instant Telegram notification to admins
+        if (typeof TelegramService !== "undefined") {
+          try {
+            await TelegramService.notifyPreorder(preorderData);
+          } catch (tgErr) {
+            console.warn("Telegram preorder notification warning:", tgErr);
+          }
+        }
+
         alert(`شكراً لك يا ${name}! 🎉\nتم تسجيل حجزك المسبق بنجاح لمنتج (${this.currentProduct.name}).\nسنقوم بإشعارك عبر واتساب فور توفر المنتج بالمخزن!`);
         window.location.href = "index.html";
       } catch (err) {

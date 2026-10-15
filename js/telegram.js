@@ -8,6 +8,7 @@ const TelegramService = {
     botToken: "8825653491:AAENIM2Y82iOrxDyGWG6Nb-2bH-kDm4H5Aw",
     chatId: "7523249075, 1719802831",
     notifyOrders: true,
+    notifyPreorders: true,
     notifyVisits: false,
     notifyLogins: true,
     notifyMessages: true,
@@ -163,6 +164,42 @@ ${order.couponCode ? `• كود الخصم: <code>${order.couponCode}</code> (�
 • طريقة الدفع: <b>${order.paymentMethod || "الدفع عند الاستلام (COD)"}</b>
 
 ${waLink ? `💬 <a href="${waLink}">اضغط هنا لمراسلة العميل عبر واتساب</a>` : ""}
+━━━━━━━━━━━━━━━━━━
+<i>حِلها - كل مشكلة ليها حلّها ✨</i>
+    `.trim();
+
+    return await this.sendMessage(message);
+  },
+
+  /**
+   * Send notification for a new customer pre-order (حجز طلب مسبق)
+   */
+  async notifyPreorder(preorder) {
+    if (!this.settings.notifyOrders && !this.settings.notifyPreorders) return;
+
+    let cleanPhone = (preorder.customerPhone || "").replace(/\D/g, "");
+    if (cleanPhone.startsWith("0")) {
+      cleanPhone = "2" + cleanPhone;
+    } else if (!cleanPhone.startsWith("2") && cleanPhone.length === 10) {
+      cleanPhone = "20" + cleanPhone;
+    }
+    const waLink = cleanPhone ? `https://wa.me/${cleanPhone}` : "";
+
+    const message = `
+⏳ <b>حجز طلب مسبق جديد في متجر حِلها!</b>
+━━━━━━━━━━━━━━━━━━
+📦 <b>المنتج المطلوب:</b> <b>${preorder.productName || "غير محدد"}</b>
+${preorder.productId ? `🆔 <b>كود المنتج:</b> <code>${preorder.productId}</code>\n` : ""}📅 <b>تاريخ الحجز:</b> ${preorder.createdAt || new Date().toLocaleString("ar-EG")}
+
+👤 <b>بيانات العميل:</b>
+• <b>الاسم:</b> ${preorder.customerName}
+• <b>رقم الواتساب:</b> <code>${preorder.customerPhone}</code>
+• <b>المحافظة:</b> ${preorder.governorate || "غير محدد"}
+• <b>العنوان / الملاحظات:</b> ${preorder.address || "لا يوجد"}
+
+📌 <b>حالة الحجز:</b> قيد الانتظار لحين توفر المنتج بالمخزن ⏳
+
+${waLink ? `💬 <a href="${waLink}">اضغط هنا لمراسلة العميل مباشرة عبر واتساب</a>` : ""}
 ━━━━━━━━━━━━━━━━━━
 <i>حِلها - كل مشكلة ليها حلّها ✨</i>
     `.trim();

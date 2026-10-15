@@ -729,28 +729,110 @@ a {
 }
 
 /* ==========================================================================
-   New Order Notifications & Badges
+   Smart Sidebar Notification Badges (الطلبات، الطلبات المسبقة، والزيارات)
    ========================================================================== */
-.menu-badge {
-  background: #ef4444;
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 999px;
-  margin-right: auto;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
-  animation: pulseBadge 2s infinite ease-in-out;
+.sidebar-menu .menu-item button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  width: 100%;
 }
 
-.menu-item.active .menu-badge {
-  background: #113832;
+.sidebar-menu .menu-item button .menu-label {
+  flex: 1;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-badge {
+  margin-right: auto;
+  margin-inline-start: auto;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  min-width: 22px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 1. Orders Badge */
+.menu-badge.badge-orders.badge-alert {
+  background: #ef4444;
+  color: #ffffff;
+  animation: pulseBadge 1.8s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.65);
+}
+.menu-badge.badge-orders.badge-normal {
+  background: #2563eb;
+  color: #ffffff;
+}
+.menu-badge.badge-orders.badge-empty {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* 2. Pre-orders Badge */
+.menu-badge.badge-preorders.badge-alert {
+  background: #f59e0b;
+  color: #ffffff;
+  animation: pulseBadge 2s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.65);
+}
+.menu-badge.badge-preorders.badge-normal {
+  background: #d97706;
+  color: #ffffff;
+}
+.menu-badge.badge-preorders.badge-empty {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* 3. Visitors Badge */
+.menu-badge.badge-visitors.badge-active {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.45);
+}
+.menu-badge.badge-visitors.badge-empty {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Active Menu Item Badge Overrides */
+.menu-item.active .menu-badge.badge-empty {
+  background: rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
+}
+.menu-item.active .menu-badge.badge-orders.badge-alert {
+  background: #dc2626;
+  color: #ffffff;
+}
+.menu-item.active .menu-badge.badge-preorders.badge-alert {
+  background: #b45309;
+  color: #ffffff;
+}
+.menu-item.active .menu-badge.badge-visitors.badge-active {
+  background: #047857;
   color: #ffffff;
 }
 
 @keyframes pulseBadge {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
 }
 
 /* ==========================================================================
