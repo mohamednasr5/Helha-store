@@ -1278,6 +1278,24 @@ img {
   margin-bottom: 0.85rem;
 }
 
+.product-meta-clickable {
+  cursor: pointer;
+  width: fit-content;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.product-meta-clickable:hover {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.product-meta-clickable:hover .product-review-count {
+  text-decoration: underline;
+  color: #175349;
+}
+
 .product-rating {
   color: #f59e0b;
   font-weight: 700;

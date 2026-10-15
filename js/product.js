@@ -102,8 +102,15 @@ const ProductPage = {
     const titleEl = document.getElementById("prod-title");
     if (titleEl) titleEl.textContent = p.name;
 
+    const reviewStats = typeof ReviewsModule !== "undefined"
+      ? ReviewsModule.getProductReviewStats(p)
+      : { count: p.reviewsCount || 48, rating: 4.9 };
+
     const countEl = document.getElementById("prod-review-count");
-    if (countEl) countEl.textContent = `(${p.reviewsCount || 4} تقييم)`;
+    if (countEl) countEl.textContent = `(${reviewStats.count} تقييم)`;
+
+    const starsEl = document.getElementById("prod-header-stars");
+    if (starsEl) starsEl.textContent = reviewStats.rating >= 4.9 ? "★★★★★" : "★★★★½";
 
     // Price & Discount
     const priceEl = document.getElementById("prod-main-price");
@@ -231,6 +238,17 @@ const ProductPage = {
 
     // Calculation Summary
     this.updateCalculation();
+
+    // Render Customer Reviews Section at bottom of page
+    if (typeof ReviewsModule !== "undefined") {
+      ReviewsModule.renderReviewsSection("product-reviews-section", p);
+    }
+  },
+
+  scrollToReviews() {
+    if (typeof ReviewsModule !== "undefined") {
+      ReviewsModule.scrollToReviews();
+    }
   },
 
   initGallery(p) {

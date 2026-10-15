@@ -126,9 +126,10 @@
     <!-- Title & Rating -->
     <h1 id="prod-title" class="prod-main-title">جاري تحميل المنتج...</h1>
     
-    <div class="rating-row">
-      <span class="rating-stars">★★★★★</span>
-      <span id="prod-review-count" class="rating-count">(4 تقييم)</span>
+    <div class="rating-row" id="product-rating-header" onclick="ReviewsModule.scrollToReviews()" title="اضغط هنا للانتقال مباشرة لآراء وتقييمات العملاء بأسفل الصفحة">
+      <span class="rating-stars" id="prod-header-stars">★★★★★</span>
+      <span id="prod-review-count" class="rating-count">(جاري التحميل...)</span>
+      <span class="rating-scroll-hint">💬 عرض الآراء</span>
     </div>
 
     <!-- Price & Discount -->
@@ -281,6 +282,11 @@
           <span id="btn-bottom-total">(0 ج.م)</span>
         </button>
       </form>
+    </section>
+ 
+    <!-- Product Reviews Section (آراء وتقييمات العملاء المعتمدة) -->
+    <section id="product-reviews-section" class="product-reviews-section">
+      <!-- Populated dynamically via ReviewsModule.renderReviewsSection() -->
     </section>
 
     <!-- Recommended Products Carousel (منتجات مقترحة لك) -->
@@ -460,6 +466,7 @@
   <!-- Project Scripts -->
   <script src="js/firebase-config.js"></script>
   <script src="js/telegram.js"></script>
+  <script src="js/reviews.js"></script>
   <script src="js/product.js"></script>
   <script src="js/pwa.js"></script>
 </body>

@@ -223,6 +223,10 @@ function createProductCardHTML(prod) {
     `;
   }
 
+  const reviewStats = typeof ReviewsModule !== "undefined"
+    ? ReviewsModule.getProductReviewStats(prod)
+    : { count: prod.reviewsCount || 48, rating: prod.rating || 4.9 };
+
   return `
     <article class="product-card" data-id="${prod.id}" data-has-slider="${hasMultipleImages ? 'true' : 'false'}" data-images="${imagesEncoded}" data-current-idx="0">
       <div class="product-thumb" onclick="window.location.href='product.html?id=${prod.id}'">
@@ -242,9 +246,9 @@ function createProductCardHTML(prod) {
         <h4 class="product-title" onclick="window.location.href='product.html?id=${prod.id}'" title="${prod.name}">${prod.name}</h4>
         <p class="product-subtitle">${prod.subtitle || ""}</p>
         
-        <div class="product-meta">
-          <span class="product-rating">★ ${prod.rating || "4.8"}</span>
-          <span>(${prod.reviewsCount || 45} تقييم)</span>
+        <div class="product-meta product-meta-clickable" onclick="window.location.href='product.html?id=${prod.id}#product-reviews-section'; event.stopPropagation();" title="اضغط لعرض تقييمات وآراء العملاء (${reviewStats.count} تقييم)">
+          <span class="product-rating">★ ${reviewStats.rating.toFixed(1)}</span>
+          <span class="product-review-count">(${reviewStats.count} تقييم)</span>
         </div>
 
         <div class="product-price-row">
