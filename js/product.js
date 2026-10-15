@@ -127,6 +127,14 @@ const ProductPage = {
     // Update Dynamic Schema.org (JSON-LD) with Real Reviews & Exact Ratings
     this.updateProductSchema(p, reviewStats);
 
+    // Render Deterministic Sales Purchases Badge (>1000)
+    const salesBadgeContainer = document.getElementById("prod-sales-badge-container");
+    if (salesBadgeContainer) {
+      salesBadgeContainer.innerHTML = typeof SocialProofModule !== "undefined"
+        ? SocialProofModule.getSalesBadgeHTML(p, true)
+        : "";
+    }
+
     // Price & Discount
     const priceEl = document.getElementById("prod-main-price");
     if (priceEl) priceEl.innerHTML = `${p.price} <small>ج.م</small>`;

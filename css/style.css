@@ -2822,5 +2822,284 @@ body.cart-open {
   box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4) !important;
 }
 
+/* --------------------------------------------------------------------------
+   Social Proof & Sales Pop Notifications (إشعارات الدليل الاجتماعي والشراء المباشر)
+   -------------------------------------------------------------------------- */
+.sales-pop-container {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 890;
+  max-width: 380px;
+  width: auto;
+  pointer-events: none;
+}
+
+.sales-pop-card {
+  pointer-events: auto;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 0.75rem 0.95rem;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  border-right: 4px solid #16a34a;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: salesPopIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+
+.sales-pop-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.2), 0 4px 12px rgba(22, 163, 74, 0.15);
+}
+
+.sales-pop-card.sales-pop-leaving {
+  animation: salesPopOut 0.35s ease forwards;
+}
+
+@keyframes salesPopIn {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes salesPopOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.94);
+  }
+}
+
+.sales-pop-thumb-wrap {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sales-pop-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sales-pop-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  padding-left: 1.25rem; /* Room for close button */
+}
+
+.sales-pop-header {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sales-pop-customer {
+  color: #0f172a;
+}
+
+.sales-pop-separator {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.sales-pop-city {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.sales-pop-action {
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sales-pop-prod-title {
+  color: #175349;
+  font-weight: 800;
+}
+
+.sales-pop-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.74rem;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+.sales-pop-verified {
+  color: #16a34a;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.sales-pop-close-btn {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.sales-pop-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* --------------------------------------------------------------------------
+   Product Sales Count Badges (تم شراء هذا المنتج أكثر من 1000 مرة)
+   -------------------------------------------------------------------------- */
+.product-sales-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  margin-top: 0.35rem;
+  width: fit-content;
+}
+
+.product-sales-count-badge strong {
+  font-weight: 900;
+  color: #b45309;
+}
+
+.sales-fire-icon {
+  font-size: 0.85rem;
+  animation: flameFlicker 1.8s infinite ease-in-out;
+}
+
+@keyframes flameFlicker {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15) rotate(4deg); }
+}
+
+.prod-sales-badge-single {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #92400e;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1.5px solid #fcd34d;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.12);
+  width: fit-content;
+}
+
+.prod-sales-badge-single strong {
+  font-weight: 900;
+  color: #b45309;
+  font-size: 0.96rem;
+}
+
+.sales-verified-tick {
+  color: #16a34a;
+  font-size: 0.85rem;
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Safe Positioning (لا يتعارض مع شريط الأيقونات بالأسفل أو بانر التثبيت)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .sales-pop-container {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 12px !important;
+    right: 12px !important;
+    max-width: 360px !important;
+    margin: 0 auto !important;
+    z-index: 880 !important; /* Above page content, safely above mobile nav, below modals */
+  }
+
+  .sales-pop-card {
+    padding: 0.65rem 0.8rem;
+    gap: 0.7rem;
+    border-radius: 12px;
+  }
+
+  .sales-pop-thumb-wrap {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 8px;
+  }
+
+  .sales-pop-header {
+    font-size: 0.8rem;
+  }
+
+  .sales-pop-action {
+    font-size: 0.76rem;
+  }
+
+  .sales-pop-meta {
+    font-size: 0.7rem;
+  }
+}
+
+
 
 

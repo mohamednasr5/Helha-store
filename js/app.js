@@ -227,6 +227,10 @@ function createProductCardHTML(prod) {
     ? ReviewsModule.getProductReviewStats(prod)
     : { count: prod.reviewsCount || 48, rating: prod.rating || 4.9 };
 
+  const salesBadgeHTML = typeof SocialProofModule !== "undefined"
+    ? SocialProofModule.getSalesBadgeHTML(prod, false)
+    : "";
+
   return `
     <article class="product-card" data-id="${prod.id}" data-has-slider="${hasMultipleImages ? 'true' : 'false'}" data-images="${imagesEncoded}" data-current-idx="0">
       <div class="product-thumb" onclick="window.location.href='product.html?id=${prod.id}'">
@@ -250,6 +254,8 @@ function createProductCardHTML(prod) {
           <span class="product-rating">★ ${reviewStats.rating.toFixed(1)}</span>
           <span class="product-review-count">(${reviewStats.count} تقييم)</span>
         </div>
+
+        ${salesBadgeHTML}
 
         <div class="product-price-row">
           <div class="price-box">

@@ -5,7 +5,7 @@
  * - Network-First with cache fallback for HTML pages => Always fresh content with reliable offline fallback.
  */
 
-const CACHE_NAME = "helha-pwa-v3";
+const CACHE_NAME = "helha-pwa-v4";
 
 const STATIC_ASSETS = [
   "./",
@@ -25,6 +25,7 @@ const STATIC_ASSETS = [
   "./js/app.js",
   "./js/product.js",
   "./js/reviews.js",
+  "./js/social-proof.js",
   "./js/firebase-config.js",
   "./js/telegram.js",
   "./manifest.json",
