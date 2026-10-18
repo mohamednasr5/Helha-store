@@ -192,16 +192,96 @@
       `;
     },
 
+    productsPool: [],
+
     /**
-     * Get available products from the current environment
+     * Filter only valid, active products actually present in the store.
+     * Excludes out of stock items. If real user products exist, strictly excludes demo products.
+     */
+    filterActiveStoreProducts(list) {
+      if (!Array.isArray(list)) return [];
+      const valid = list.filter(p => p && p.name && String(p.name).trim() !== "" && p.availability !== "out_of_stock");
+      
+      // If store has real non-demo products, prioritize them exclusively
+      const realOnly = valid.filter(p => !p.isDemo && !String(p.id).startsWith("demo_"));
+      if (realOnly.length > 0) {
+        return realOnly;
+      }
+      return valid;
+    },
+
+    /**
+     * Explicitly update the active products pool from Firebase or AppState
+     */
+    setProductsPool(products) {
+      if (!Array.isArray(products) || products.length === 0) return;
+      const filtered = this.filterActiveStoreProducts(products);
+      if (filtered.length === 0) return;
+
+      this.productsPool = filtered;
+      this.shuffledProducts = shuffleArray(filtered);
+      this.productIndex = 0;
+    },
+
+    /**
+     * Real-time Firebase listener to guarantee only actual products existing in DB are used
+     */
+    initFirebaseListener() {
+      if (typeof db !== "undefined" && db) {
+        try {
+          db.ref("products").on("value", (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+              const activeList = Object.keys(data).map((key) => ({
+                ...data[key],
+                id: data[key].id || key
+              }));
+              this.setProductsPool(activeList);
+            }
+          });
+        } catch (e) {
+          console.warn("SocialProof Firebase listener notice:", e);
+        }
+      }
+    },
+
+    /**
+     * Get available products from the current active store environment.
+     * STRICT REQUIREMENT: Only products that actually exist in the store catalog.
+     * Never fall back to fake or demo products.
      */
     getProductsPool() {
+      // 1. Cached active pool from Firebase listener
+      if (this.productsPool && this.productsPool.length > 0) {
+        return this.productsPool;
+      }
+
+      // 2. From AppState (index.html / deals.html)
       if (window.AppState && Array.isArray(window.AppState.products) && window.AppState.products.length > 0) {
-        return window.AppState.products;
+        const filtered = this.filterActiveStoreProducts(window.AppState.products);
+        if (filtered.length > 0) {
+          this.productsPool = filtered;
+          return filtered;
+        }
       }
-      if (typeof DEMO_PRODUCTS !== "undefined" && Array.isArray(DEMO_PRODUCTS) && DEMO_PRODUCTS.length > 0) {
-        return DEMO_PRODUCTS;
+
+      // 3. From ProductPage (product.html)
+      if (window.ProductPage) {
+        const prods = [];
+        if (window.ProductPage.currentProduct && window.ProductPage.currentProduct.name) {
+          prods.push(window.ProductPage.currentProduct);
+        }
+        if (Array.isArray(window.ProductPage.recommendedProducts)) {
+          prods.push(...window.ProductPage.recommendedProducts);
+        }
+        const filtered = this.filterActiveStoreProducts(prods);
+        if (filtered.length > 0) {
+          this.productsPool = filtered;
+          return filtered;
+        }
       }
+
+      // Products still loading from store database: return empty so triggerPop waits
       return [];
     },
 
@@ -243,8 +323,9 @@
       this.shuffledCities = shuffleArray(SALES_POP_CITIES);
 
       this.initContainer();
+      this.initFirebaseListener();
 
-      // Start the loop after a gentle initial delay (6 seconds)
+      // Start the loop after a gentle initial delay (5.5 seconds)
       setTimeout(() => {
         this.scheduleNext(1000);
       }, 5500);

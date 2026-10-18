@@ -76,6 +76,9 @@ function initFirebaseProducts() {
         seedInitialDemoProducts();
         AppState.products = [...DEMO_PRODUCTS];
       }
+      if (window.SocialProofModule && typeof window.SocialProofModule.setProductsPool === "function") {
+        window.SocialProofModule.setProductsPool(AppState.products);
+      }
       renderProducts();
     }, (error) => {
       console.warn("Firebase read error, falling back to local demo products:", error);

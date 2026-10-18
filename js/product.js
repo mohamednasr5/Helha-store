@@ -70,6 +70,9 @@ const ProductPage = {
         const val = snap.val();
         if (val) {
           this.currentProduct = { ...val, id: prodId };
+          if (window.SocialProofModule && typeof window.SocialProofModule.setProductsPool === "function") {
+            window.SocialProofModule.setProductsPool([this.currentProduct]);
+          }
           this.render();
           return;
         }
@@ -1084,6 +1087,9 @@ const ProductPage = {
         const val = snap.val();
         if (val) {
           prods = Object.keys(val).map(key => ({ ...val[key], id: key }));
+          if (window.SocialProofModule && typeof window.SocialProofModule.setProductsPool === "function") {
+            window.SocialProofModule.setProductsPool(prods);
+          }
         }
       } catch (err) {
         console.warn("Could not load recommended products from Firebase:", err);
